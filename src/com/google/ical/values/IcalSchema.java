@@ -1,11 +1,11 @@
 // Copyright (C) 2006 Google Inc.
-// 
+//
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-// 
+//
 //      http://www.apache.org/licenses/LICENSE-2.0
-// 
+//
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -54,9 +54,9 @@ class IcalSchema {
       Pattern.compile("^X-[A-Z0-9\\-]+$", Pattern.CASE_INSENSITIVE);
 
   IcalSchema(Map<String, ParamRule> paramRules,
-	     Map<String, ContentRule> contentRules,
-	     Map<String, ObjectRule> objectRules,
-	     Map<String, XformRule> xformRules) {
+             Map<String, ContentRule> contentRules,
+             Map<String, ObjectRule> objectRules,
+             Map<String, XformRule> xformRules) {
     this.paramRules.putAll(paramRules);
     this.contentRules.putAll(contentRules);
     this.objectRules.putAll(objectRules);

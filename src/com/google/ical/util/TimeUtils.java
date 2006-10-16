@@ -1,12 +1,12 @@
 /*
  * Copyright (C) 2006 Google Inc.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -57,7 +57,7 @@ public class TimeUtils {
     cal.clear(); // clear millis
     cal.setTimeZone(zone);
     cal.set(date.year(), date.month() - 1, date.day(),
-	    date.hour(), date.minute(), date.second());
+            date.hour(), date.minute(), date.second());
     return cal.getTimeInMillis();
   }
 
@@ -105,9 +105,9 @@ public class TimeUtils {
 
   private static DateTimeValue addSeconds(DateTimeValue dtime, int seconds) {
     return new DTBuilder(dtime.year(), dtime.month(),
-			 dtime.day(), dtime.hour(),
-			 dtime.minute(),
-			 dtime.second() + seconds).toDateTime();
+                         dtime.day(), dtime.hour(),
+                         dtime.minute(),
+                         dtime.second() + seconds).toDateTime();
   }
 
   public static DateValue add(DateValue d, DateValue dur) {
@@ -200,7 +200,7 @@ public class TimeUtils {
       MONTH_START_TO_DOY[m] = MONTH_START_TO_DOY[m - 1] + monthLength(1970, m);
     }
     assert 365 == MONTH_START_TO_DOY[11] + monthLength(1970, 12) :
-	   "" + (MONTH_START_TO_DOY[11] + monthLength(1970, 12));
+           "" + (MONTH_START_TO_DOY[11] + monthLength(1970, 12));
   }
 
   /** the day of the year in [0-365] of the given date. */
@@ -279,7 +279,7 @@ public class TimeUtils {
 
   private static final Pattern UTC_TZID =
       Pattern.compile("^GMT([+-]0(:00)?)?$|UTC|Zulu|Etc\\/GMT|Greenwich.*",
-		      Pattern.CASE_INSENSITIVE);
+                      Pattern.CASE_INSENSITIVE);
 
   /**
    * returns the timezone with the given name or null if no such timezone.

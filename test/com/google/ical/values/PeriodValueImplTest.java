@@ -1,11 +1,11 @@
 // Copyright (C) 2006 Google Inc.
-// 
+//
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-// 
+//
 //      http://www.apache.org/licenses/LICENSE-2.0
-// 
+//
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -125,13 +125,13 @@ public class PeriodValueImplTest extends TestCase {
       SAME_TIME = new DateTimeValueImpl(0, 0, 0, 0, 0, 0);
 
     assertEquals(PeriodValueImpl.create(DV, new DateValueImpl(2005, 2, 16)),
-		 PeriodValueImpl.createFromDuration(DV, ONE_DAY));
+                 PeriodValueImpl.createFromDuration(DV, ONE_DAY));
     assertEquals(PeriodValueImpl.create(DV, new DateValueImpl(2005, 2, 22)),
-		 PeriodValueImpl.createFromDuration(DV, ONE_WEEK));
+                 PeriodValueImpl.createFromDuration(DV, ONE_WEEK));
     assertEquals(PeriodValueImpl.create(DV, new DateValueImpl(2005, 3, 15)),
-		 PeriodValueImpl.createFromDuration(DV, ONE_MONTH));
+                 PeriodValueImpl.createFromDuration(DV, ONE_MONTH));
     assertEquals(PeriodValueImpl.create(DV, new DateValueImpl(2006, 2, 15)),
-		 PeriodValueImpl.createFromDuration(DV, ONE_YEAR));
+                 PeriodValueImpl.createFromDuration(DV, ONE_YEAR));
     try {
       PeriodValueImpl.createFromDuration(DV, YESTERDAY);
       fail("I believe our adventures in time have taken a most serious turn.");
@@ -139,22 +139,22 @@ public class PeriodValueImplTest extends TestCase {
       // pass
     }
     assertEquals(PeriodValueImpl.create(
-		     DTV0, new DateTimeValueImpl(2005, 2, 16, 0, 0, 0)),
-		 PeriodValueImpl.createFromDuration(DTV0, ONE_DAY));
+                     DTV0, new DateTimeValueImpl(2005, 2, 16, 0, 0, 0)),
+                 PeriodValueImpl.createFromDuration(DTV0, ONE_DAY));
     assertEquals(PeriodValueImpl.create(
-		     DTV0, new DateTimeValueImpl(2005, 2, 15, 1, 0, 0)),
-		 PeriodValueImpl.createFromDuration(DTV0, ONE_HOUR));
+                     DTV0, new DateTimeValueImpl(2005, 2, 15, 1, 0, 0)),
+                 PeriodValueImpl.createFromDuration(DTV0, ONE_HOUR));
     assertEquals(PeriodValueImpl.create(
-		     DTV12, new DateTimeValueImpl(2005, 2, 15, 13, 0, 0)),
-		 PeriodValueImpl.createFromDuration(DTV12, ONE_HOUR));
+                     DTV12, new DateTimeValueImpl(2005, 2, 15, 13, 0, 0)),
+                 PeriodValueImpl.createFromDuration(DTV12, ONE_HOUR));
     assertEquals(PeriodValueImpl.create(
-		     DTV0, new DateTimeValueImpl(2005, 2, 15, 12, 0, 0)),
-		 PeriodValueImpl.createFromDuration(DV, TWELVE_HOURS));
+                     DTV0, new DateTimeValueImpl(2005, 2, 15, 12, 0, 0)),
+                 PeriodValueImpl.createFromDuration(DV, TWELVE_HOURS));
     assertEquals(PeriodValueImpl.create(
-		     DTV0, new DateTimeValueImpl(2005, 2, 15, 12, 0, 0)),
-		 PeriodValueImpl.createFromDuration(DTV0, TWELVE_HOURS));
+                     DTV0, new DateTimeValueImpl(2005, 2, 15, 12, 0, 0)),
+                 PeriodValueImpl.createFromDuration(DTV0, TWELVE_HOURS));
     assertEquals(PeriodValueImpl.create(DTV12, DTV12),
-		 PeriodValueImpl.createFromDuration(DTV12, SAME_TIME));
+                 PeriodValueImpl.createFromDuration(DTV12, SAME_TIME));
   }
 
   public void testContains() throws Exception {
@@ -166,9 +166,9 @@ public class PeriodValueImplTest extends TestCase {
           c = b + 1 + rnd.nextInt(4),
           d = c + 1 + rnd.nextInt(4);
       PeriodValue ab = PeriodValueImpl.create(values[a], values[b]),
-	  ad = PeriodValueImpl.create(values[a], values[d]),
-	  bc = PeriodValueImpl.create(values[b], values[c]),
-	  cd = PeriodValueImpl.create(values[c], values[d]);
+          ad = PeriodValueImpl.create(values[a], values[d]),
+          bc = PeriodValueImpl.create(values[b], values[c]),
+          cd = PeriodValueImpl.create(values[c], values[d]);
 
       assertTrue( ab.contains(ab));
       assertTrue(!ab.contains(ad));
@@ -198,9 +198,9 @@ public class PeriodValueImplTest extends TestCase {
           c = b + 1 + rnd.nextInt(4),
           d = c + 1 + rnd.nextInt(4);
       PeriodValue ab = PeriodValueImpl.create(values[a], values[b]),
-	  ad = PeriodValueImpl.create(values[a], values[d]),
-	  bc = PeriodValueImpl.create(values[b], values[c]),
-	  cd = PeriodValueImpl.create(values[c], values[d]);
+          ad = PeriodValueImpl.create(values[a], values[d]),
+          bc = PeriodValueImpl.create(values[b], values[c]),
+          cd = PeriodValueImpl.create(values[c], values[d]);
 
       assertTrue( ab.intersects(ab));
       assertTrue( ab.intersects(ad));
@@ -266,7 +266,7 @@ public class PeriodValueImplTest extends TestCase {
            b = "20050413T174330";
     assertEquals(a + "/" + b, PeriodValueImpl.create
                  (IcalParseUtil.parseDateValue(a),
-		  IcalParseUtil.parseDateValue(b)).toString());
+                  IcalParseUtil.parseDateValue(b)).toString());
   }
 
   private static void implies(boolean a, boolean b) {

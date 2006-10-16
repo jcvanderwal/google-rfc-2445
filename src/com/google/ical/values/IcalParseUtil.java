@@ -1,11 +1,11 @@
 // Copyright (C) 2006 Google Inc.
-// 
+//
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-// 
+//
 //      http://www.apache.org/licenses/LICENSE-2.0
-// 
+//
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -50,16 +50,16 @@ public final class IcalParseUtil {
       day = Integer.parseInt(m.group(3));
     if (null != m.group(4)) {
       int hour = Integer.parseInt(m.group(4)),
-	minute = Integer.parseInt(m.group(5)),
-	second = Integer.parseInt(m.group(6));
+        minute = Integer.parseInt(m.group(5)),
+        second = Integer.parseInt(m.group(6));
       boolean utc = null != m.group(7);
 
       DateValue dv = new DTBuilder(
-	  year, month, day, hour, minute, second).toDateTime();
+          year, month, day, hour, minute, second).toDateTime();
       if (!utc && null != tzid) {
-	dv = TimeUtils.toUtc(dv, tzid);
+        dv = TimeUtils.toUtc(dv, tzid);
       }
-      return dv;      
+      return dv;
     } else {
       return new DTBuilder(year, month, day).toDate();
     }

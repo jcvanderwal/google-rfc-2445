@@ -1,11 +1,11 @@
 // Copyright (C) 2006 Google Inc.
-// 
+//
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-// 
+//
 //      http://www.apache.org/licenses/LICENSE-2.0
-// 
+//
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -85,41 +85,41 @@ public class RecurrenceIteratorFactory {
     final IcalObject[] contentLines = parseContentLines(rdata, tzid, strict);
 
     return new RecurrenceIterable() {
-	public RecurrenceIterator iterator() {
-	  List<RecurrenceIterator> inclusions =
+        public RecurrenceIterator iterator() {
+          List<RecurrenceIterator> inclusions =
                new ArrayList<RecurrenceIterator>();
-	  List<RecurrenceIterator> exclusions =
+          List<RecurrenceIterator> exclusions =
                new ArrayList<RecurrenceIterator>();
-	  // always include DTStart
-	  inclusions.add(new RDateIteratorImpl(
-			     new DateValue[] {TimeUtils.toUtc(dtStart, tzid)}));
-	  for (IcalObject contentLine : contentLines) {
-	    try {
-	      String name = contentLine.getName();
-	      if ("rrule".equalsIgnoreCase(name)) {
-		inclusions.add(createRecurrenceIterator(
+          // always include DTStart
+          inclusions.add(new RDateIteratorImpl(
+                             new DateValue[] {TimeUtils.toUtc(dtStart, tzid)}));
+          for (IcalObject contentLine : contentLines) {
+            try {
+              String name = contentLine.getName();
+              if ("rrule".equalsIgnoreCase(name)) {
+                inclusions.add(createRecurrenceIterator(
                                    (RRule) contentLine, dtStart, tzid));
-	      } else if ("rdate".equalsIgnoreCase(name)) {
-		inclusions.add(
+              } else if ("rdate".equalsIgnoreCase(name)) {
+                inclusions.add(
                     createRecurrenceIterator((RDateList) contentLine));
-	      } else if ("exrule".equalsIgnoreCase(name)) {
-		exclusions.add(createRecurrenceIterator(
+              } else if ("exrule".equalsIgnoreCase(name)) {
+                exclusions.add(createRecurrenceIterator(
                                    (RRule) contentLine, dtStart, tzid));
-	      } else if ("exdate".equalsIgnoreCase(name)) {
-		exclusions.add(
+              } else if ("exdate".equalsIgnoreCase(name)) {
+                exclusions.add(
                     createRecurrenceIterator((RDateList) contentLine));
-	      }
-	    } catch (IllegalArgumentException ex) {
-	      // bad frequency on rrule or exrule
-	      if (strict) { throw ex; }
-	      LOGGER.log(
-		  Level.SEVERE,
-		  "Dropping bad recurrence rule line: " + contentLine.toIcal(),
-		  ex);
-	    }
-	  }
-	  return new CompoundIteratorImpl(inclusions, exclusions);
-	}
+              }
+            } catch (IllegalArgumentException ex) {
+              // bad frequency on rrule or exrule
+              if (strict) { throw ex; }
+              LOGGER.log(
+                  Level.SEVERE,
+                  "Dropping bad recurrence rule line: " + contentLine.toIcal(),
+                  ex);
+            }
+          }
+          return new CompoundIteratorImpl(inclusions, exclusions);
+        }
       };
   }
 

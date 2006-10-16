@@ -1,11 +1,11 @@
 // Copyright (C) 2006 Google Inc.
-// 
+//
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-// 
+//
 //      http://www.apache.org/licenses/LICENSE-2.0
-// 
+//
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -71,16 +71,16 @@ public class RDateListTest extends TestCase {
     RDateList rd4 = new RDateList(
         "RDATE;TZID=\"America/New_York\":20060412T120000", PST);
     assertEquals("RDATE;TZID=\"America/Los_Angeles\";VALUE=DATE:20060412",
-		 rd1.toIcal());
+                 rd1.toIcal());
     assertEquals("RDATE;TZID=\"America/Los_Angeles\";VALUE=DATE-TIME:"
-		 + "20060412T190000Z",
-		 rd2.toIcal());
+                 + "20060412T190000Z",
+                 rd2.toIcal());
     assertEquals("RDATE;TZID=\"America/Los_Angeles\";VALUE=DATE-TIME"
-		 + ":20060412T190000Z,20060413T223000Z",
-		 rd3.toIcal());
+                 + ":20060412T190000Z,20060413T223000Z",
+                 rd3.toIcal());
     assertEquals("RDATE;TZID=\"America/New_York\";VALUE=DATE-TIME"
-		 + ":20060412T160000Z",
-		 rd4.toIcal());
+                 + ":20060412T160000Z",
+                 rd4.toIcal());
   }
 
   public void testRDateIcalWithXParams() throws Exception {
@@ -88,6 +88,6 @@ public class RDateListTest extends TestCase {
         "RDATE;tzid=\"America/Los_Angeles\";X-FOO=BAR:20060412", PST);
     assertEquals(
         "RDATE;TZID=\"America/Los_Angeles\";VALUE=DATE;X-FOO=BAR:20060412",
-	rd.toIcal());
+        rd.toIcal());
   }
 }

@@ -1,11 +1,11 @@
 // Copyright (C) 2006 Google Inc.
-// 
+//
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-// 
+//
 //      http://www.apache.org/licenses/LICENSE-2.0
-// 
+//
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -51,7 +51,7 @@ public class PeriodValueImpl implements PeriodValue {
   protected PeriodValueImpl(DateValue start, DateValue end) {
     if (start.compareTo(end) > 0) {
       throw new IllegalArgumentException
-	  ("Start (" + start + ") must precede end (" + end + ")");
+          ("Start (" + start + ") must precede end (" + end + ")");
     }
     if ((start instanceof TimeValue) ^ (end instanceof TimeValue)) {
       throw new IllegalArgumentException

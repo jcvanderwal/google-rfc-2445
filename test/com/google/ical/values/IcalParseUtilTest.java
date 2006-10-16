@@ -1,11 +1,11 @@
 // Copyright (C) 2006 Google Inc.
-// 
+//
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-// 
+//
 //      http://www.apache.org/licenses/LICENSE-2.0
-// 
+//
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -29,29 +29,29 @@ public class IcalParseUtilTest extends TestCase {
 
   public void testParseDates() throws Exception {
     assertEquals(new DateValueImpl(2006, 2, 25),
-		 IcalParseUtil.parseDateValue("20060225", null));
+                 IcalParseUtil.parseDateValue("20060225", null));
     assertEquals(new DateValueImpl(2006, 2, 25),
-		 IcalParseUtil.parseDateValue("20060225", PDT));
+                 IcalParseUtil.parseDateValue("20060225", PDT));
     assertEquals(new DateValueImpl(2006, 2, 25),
-		 IcalParseUtil.parseDateValue("20060225", UTC));
+                 IcalParseUtil.parseDateValue("20060225", UTC));
   }
 
   public void testParseDateTimes() throws Exception {
     assertEquals(new DateTimeValueImpl(2006, 2, 25, 12, 0, 0),
-		 IcalParseUtil.parseDateValue("20060225T120000", null));
+                 IcalParseUtil.parseDateValue("20060225T120000", null));
     assertEquals(new DateTimeValueImpl(2006, 2, 25, 20, 0, 0),
-		 IcalParseUtil.parseDateValue("20060225T120000", PDT));
+                 IcalParseUtil.parseDateValue("20060225T120000", PDT));
     assertEquals(new DateTimeValueImpl(2006, 2, 25, 12, 30, 5),
-		 IcalParseUtil.parseDateValue("20060225T123005", UTC));
+                 IcalParseUtil.parseDateValue("20060225T123005", UTC));
   }
 
   public void testParseDateTimesUtc() throws Exception {
     assertEquals(new DateTimeValueImpl(2006, 2, 25, 12, 0, 0),
-		 IcalParseUtil.parseDateValue("20060225T120000Z", null));
+                 IcalParseUtil.parseDateValue("20060225T120000Z", null));
     assertEquals(new DateTimeValueImpl(2006, 2, 25, 12, 0, 0),
-		 IcalParseUtil.parseDateValue("20060225T120000Z", PDT));
+                 IcalParseUtil.parseDateValue("20060225T120000Z", PDT));
     assertEquals(new DateTimeValueImpl(2006, 2, 25, 12, 30, 5),
-		 IcalParseUtil.parseDateValue("20060225T123005Z", UTC));
+                 IcalParseUtil.parseDateValue("20060225T123005Z", UTC));
   }
 
   public void testBadDates() throws Exception {
@@ -89,7 +89,7 @@ public class IcalParseUtilTest extends TestCase {
 
   public void testNormalized() throws Exception {
     assertEquals(new DateTimeValueImpl(2006, 3, 1, 12, 0, 0),
-		 IcalParseUtil.parseDateValue("20060229T120000Z", null));
+                 IcalParseUtil.parseDateValue("20060229T120000Z", null));
   }
 
   public void testUnfold() throws Exception {
