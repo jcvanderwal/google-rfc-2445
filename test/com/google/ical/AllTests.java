@@ -1,11 +1,11 @@
 // Copyright (C) 2006 Google Inc.
-// 
+//
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-// 
+//
 //      http://www.apache.org/licenses/LICENSE-2.0
-// 
+//
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -14,6 +14,8 @@
 
 package com.google.ical;
 
+import com.google.ical.compat.javautil.*;
+//import com.google.ical.compat.jodatime.*;
 import com.google.ical.iter.*;
 import com.google.ical.util.*;
 import com.google.ical.values.*;
@@ -26,6 +28,8 @@ import junit.framework.TestSuite;
 public class AllTests extends TestSuite {
 
   public AllTests() {
+    this.addTestSuite(
+        com.google.ical.compat.javautil.DateIteratorFactoryTest.class);
     this.addTestSuite(com.google.ical.iter.CompoundIteratorImplTest.class);
     this.addTestSuite(com.google.ical.iter.ConditionsTest.class);
     this.addTestSuite(com.google.ical.iter.DateValueComparisonTest.class);

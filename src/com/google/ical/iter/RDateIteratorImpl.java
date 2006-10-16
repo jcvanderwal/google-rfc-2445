@@ -34,6 +34,8 @@ final class RDateIteratorImpl implements RecurrenceIterator {
 
   public DateValue next() { return datesUtc[i++]; }
 
+  public void remove() { throw new UnsupportedOperationException(); }
+
   public void advanceTo(DateValue newStartUtc) {
     long startCmp = DateValueComparison.comparable(newStartUtc);
     while (i < datesUtc.length

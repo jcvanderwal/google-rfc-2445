@@ -79,6 +79,8 @@ final class CompoundIteratorImpl implements RecurrenceIterator {
     return head;
   }
 
+  public void remove() { throw new UnsupportedOperationException(); }
+
   public void advanceTo(DateValue newStart) {
     long newStartCmp = DateValueComparison.comparable(newStart);
     if (null != pending) {

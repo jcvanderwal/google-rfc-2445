@@ -53,14 +53,11 @@ public class TimeUtils {
   private static long timetMillisFromEpochSecs(long epochSecs,
                                                TimeZone zone) {
     DateTimeValue date = timeFromSecsSinceEpoch(epochSecs);
-    Calendar cal = Calendar.getInstance(zone);
+    Calendar cal = new GregorianCalendar(zone);
     cal.clear(); // clear millis
-    cal.set(Calendar.YEAR, date.year());
-    cal.set(Calendar.MONTH, date.month() - 1);
-    cal.set(Calendar.DAY_OF_MONTH, date.day());
-    cal.set(Calendar.HOUR_OF_DAY, date.hour());
-    cal.set(Calendar.MINUTE, date.minute());
-    cal.set(Calendar.SECOND, date.second());
+    cal.setTimeZone(zone);
+    cal.set(date.year(), date.month() - 1, date.day(),
+	    date.hour(), date.minute(), date.second());
     return cal.getTimeInMillis();
   }
 

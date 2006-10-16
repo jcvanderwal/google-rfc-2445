@@ -156,6 +156,8 @@ final class RRuleIteratorImpl implements RecurrenceIterator {
     return next;
   }
 
+  public void remove() { throw new UnsupportedOperationException(); }
+
   /**
    * skip over all instances of the recurrence before the given date, so that
    * the next call to {@link #next} will return a date on or after the given

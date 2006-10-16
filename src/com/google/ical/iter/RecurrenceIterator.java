@@ -15,13 +15,15 @@
 package com.google.ical.iter;
 
 import com.google.ical.values.DateValue;
+import java.util.Iterator;
 
 /**
- * an iterator over date values in order.
+ * an iterator over date values in order.  Does not support the
+ * <code>remove</code> operation.
  *
  * @author msamuel@google.com (Mike Samuel)
  */
-public interface RecurrenceIterator {
+public interface RecurrenceIterator extends Iterator<DateValue> {
 
   /** true iff there are more dates in the series. */
   boolean hasNext();
@@ -41,4 +43,10 @@ public interface RecurrenceIterator {
    * @param newStartUtc non null.
    */
   void advanceTo(DateValue newStartUtc);
+
+  /**
+   * unsupported.
+   * @throws UnsupportedOperationException always
+   */
+  void remove();
 }
