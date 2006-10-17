@@ -1,0 +1,27 @@
+<html>
+<head>
+<title>Read Me</title>
+</head>
+<body>
+<h2>Online Documentation</h2>
+<p>The javadoc is available <a
+ href="http://google-rfc-2445.googlecode.com/svn/trunk/snapshot/docs/index.html"
+>online</a>.</p>
+
+<h2>Building</h2>
+
+<p>Requires <a href="http://ant.apache.org/">ant</a> to build with
+<a href="http://www.junit.org/">, and optionally
+<a href="http://joda-time.sourceforge.net/">joda-time</a> installed.</p>
+
+<p>Once you've got <code>ant</code>
+<a href="http://ant.apache.org/manual/index.html">set up and installed</a>,
+run <code>ant default</code> to build the jars and documentation, and then
+read the documentation in the <code>docs</code> directory.  You can use the jar
+at <code>jars/rfc2445.jar</code> in your program.</p>
+
+<p>To build without joda-time, run <code>ant rfc2445-no-joda</code> and it will
+produce a version of the jar without the joda-time compatibility classes.</p>
+
+</body>
+</html>
