@@ -40,7 +40,11 @@ public class DateIteratorFactory {
 
   /**
    * given a block of RRULE, EXRULE, RDATE, and EXDATE content lines, parse
-   * them into a single recurrence iterator.
+   * them into a single date iterator.
+   * @param rdata RRULE, EXRULE, RDATE, and EXDATE lines.
+   * @param start the first occurrence of the series.
+   * @param tzid the local timezone -- used to interpret start and any dates in
+   *   RDATE and EXDATE lines that don't have TZID params.
    * @param strict true if any failure to parse should result in a
    *   ParseException.  false causes bad content lines to be logged and ignored.
    */
@@ -53,6 +57,16 @@ public class DateIteratorFactory {
             tzid, strict));
   }
 
+  /**
+   * given a block of RRULE, EXRULE, RDATE, and EXDATE content lines, parse
+   * them into a single date iterable.
+   * @param rdata RRULE, EXRULE, RDATE, and EXDATE lines.
+   * @param start the first occurrence of the series.
+   * @param tzid the local timezone -- used to interpret start and any dates in
+   *   RDATE and EXDATE lines that don't have TZID params.
+   * @param strict true if any failure to parse should result in a
+   *   ParseException.  false causes bad content lines to be logged and ignored.
+   */
   public static DateIterable createDateIterable(
       String rdata, Date start, TimeZone tzid, boolean strict)
       throws ParseException {
@@ -62,6 +76,10 @@ public class DateIteratorFactory {
             tzid, strict));
   }
 
+  /**
+   * creates a date iterator given a recurrence iterator from
+   * {@link com.google.ical.iter.RecurrenceIteratorFactory}.
+   */
   public static DateIterator createDateIterator(RecurrenceIterator rit) {
     return new RecurrenceIteratorWrapper(rit);
   }
