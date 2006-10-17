@@ -1,8 +1,16 @@
+<!DOCTYPE PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
 <html>
 <head>
 <title>Read Me</title>
+
+<link type="text/css" rel="stylesheet"
+ href="http://google-code-prettify.googlecode.com/svn/trunk/src/prettify.css" />
+<script type="text/javascript"
+ src="http://google-code-prettify.googlecode.com/svn/trunk/src/prettify.js"
+></script>
+
 </head>
-<body>
+<body onload="prettyPrint()" bgcolor="white">
 <h2>Online Documentation</h2>
 <p>The javadoc is available <a
  href="http://google-rfc-2445.googlecode.com/svn/trunk/snapshot/docs/index.html"
@@ -13,10 +21,11 @@
  href="http://code.google.com/p/google-rfc-2445/source">the project page</a> for
 instructions on how to download the source from subversion.</p>
 
+
 <h2>Building</h2>
 
 <p>Requires <a href="http://ant.apache.org/">ant</a> to build with
-<a href="http://www.junit.org/">, and optionally
+<a href="http://www.junit.org/">junit</a> for testing, and optionally
 <a href="http://joda-time.sourceforge.net/">joda-time</a> installed.</p>
 
 <p>Once you've got <code>ant</code>
@@ -27,6 +36,49 @@ at <code>jars/rfc2445.jar</code> in your program.</p>
 
 <p>To build without joda-time, run <code>ant rfc2445-no-joda</code> and it will
 produce a version of the jar without the joda-time compatibility classes.</p>
+
+
+<h2>Using</h2>
+
+<p>Using the API is pretty easy.   Pass in some ical and you get back
+a date iterable, which can be used in a for-each loop thusly:</p>
+
+<pre class=prettyprint>
+// A compatibility layer for joda-time
+import com.google.ical.compat.jodatime.LocalDateIteratorFactory;
+// A Joda time class that represents a day regardless of timezone
+import org.joda.time.LocalDate;
+
+public class ThirteenFridaysTheThirteenth {
+
+  /** print the first 13 Friday the 13ths in the 3rd millenium AD. */
+  public static void main(String[] args) throws java.text.ParseException {
+    LocalDate start = new LocalDate(2001, 4, 13);
+
+    // Every friday the thirteenth.
+    String ical = "RRULE:FREQ=MONTHLY"
+                  + ";BYDAY=FR"  // every Friday
+                  + ";BYMONTHDAY=13"  // that occurs on the 13th of the month
+                  + ";COUNT=13";  // stop after 13 occurences
+
+    // Print out each date in the series.
+    for (LocalDate date :
+         LocalDateIteratorFactory.createLocalDateIterable(ical, start, true)) {
+      System.out.println(date);
+    }
+  }
+
+}
+</pre>
+<p>See <a href="rfc2445.html#4.3.10">RFC 2445</a> for the recurrence rule
+syntax and what it means, and the examples <a href="rfc2445.html#4.8.5.4"
+>later</a> in the same document.</p>
+
+<p>If you use <code>java.util.Date</code> and <code>java.util.Calendar</code> in
+your application instead of Joda-Time, you can use the
+<code>com.google.ical.compat.javautil</code> package instead to provide
+Date objects.</p>
+
 
 <h2>Running tests</h2>
 

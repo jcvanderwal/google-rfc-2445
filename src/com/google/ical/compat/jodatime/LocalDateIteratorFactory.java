@@ -38,10 +38,14 @@ public class LocalDateIteratorFactory {
   /**
    * given a block of RRULE, EXRULE, RDATE, and EXDATE content lines, parse
    * them into a single recurrence iterator.
+   * @param rdata RRULE, EXRULE, RDATE, and EXDATE lines.
+   * @param start the first occurrence of the series.
+   * @param tzid the local timezone -- used to interpret any dates in RDATE and
+   *   EXDATE lines that don't have TZID params.
    * @param strict true if any failure to parse should result in a
    *   ParseException.  false causes bad content lines to be logged and ignored.
    */
-  public static LocalDateIterator createLocalLocalDateIterator(
+  public static LocalDateIterator createLocalDateIterator(
       String rdata, LocalDate start, DateTimeZone tzid, boolean strict)
       throws ParseException {
     return new RecurrenceIteratorWrapper(
@@ -50,6 +54,30 @@ public class LocalDateIteratorFactory {
             tzid.toTimeZone(), strict));
   }
 
+  /**
+   * given a block of RRULE, EXRULE, RDATE, and EXDATE content lines, parse
+   * them into a single recurrence iterator.
+   * @param rdata RRULE, EXRULE, RDATE, and EXDATE lines.
+   * @param start the first occurrence of the series.
+   * @param strict true if any failure to parse should result in a
+   *   ParseException.  false causes bad content lines to be logged and ignored.
+   */
+  public static LocalDateIterator createLocalDateIterator(
+      String rdata, LocalDate start, boolean strict)
+      throws ParseException {
+    return createLocalDateIterator(rdata, start, DateTimeZone.UTC, strict);
+  }
+
+  /**
+   * given a block of RRULE, EXRULE, RDATE, and EXDATE content lines, parse
+   * them into a single recurrence iterable.
+   * @param rdata RRULE, EXRULE, RDATE, and EXDATE lines.
+   * @param start the first occurrence of the series.
+   * @param tzid the local timezone -- used to interpret any dates in RDATE and
+   *   EXDATE lines that don't have TZID params.
+   * @param strict true if any failure to parse should result in a
+   *   ParseException.  false causes bad content lines to be logged and ignored.
+   */
   public static LocalDateIterable createLocalDateIterable(
       String rdata, LocalDate start, DateTimeZone tzid, boolean strict)
       throws ParseException {
@@ -59,6 +87,21 @@ public class LocalDateIteratorFactory {
             tzid.toTimeZone(), strict));
   }
 
+  /**
+   * given a block of RRULE, EXRULE, RDATE, and EXDATE content lines, parse
+   * them into a single recurrence iterable.
+   * @param rdata RRULE, EXRULE, RDATE, and EXDATE lines.
+   * @param start the first occurrence of the series.
+   * @param strict true if any failure to parse should result in a
+   *   ParseException.  false causes bad content lines to be logged and ignored.
+   */
+  public static LocalDateIterable createLocalDateIterable(
+      String rdata, LocalDate start, boolean strict)
+      throws ParseException {
+    return createLocalDateIterable(rdata, start, DateTimeZone.UTC, strict);
+  }
+
+  /** creates a local date iterator given a recurrence iterator. */
   public static LocalDateIterator createLocalDateIterator(
       RecurrenceIterator rit) {
     return new RecurrenceIteratorWrapper(rit);
