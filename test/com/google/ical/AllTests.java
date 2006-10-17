@@ -15,7 +15,7 @@
 package com.google.ical;
 
 import com.google.ical.compat.javautil.*;
-//import com.google.ical.compat.jodatime.*;
+import com.google.ical.compat.jodatime.*;
 import com.google.ical.iter.*;
 import com.google.ical.util.*;
 import com.google.ical.values.*;
@@ -30,6 +30,10 @@ public class AllTests extends TestSuite {
   public AllTests() {
     this.addTestSuite(
         com.google.ical.compat.javautil.DateIteratorFactoryTest.class);
+    this.addTestSuite(
+        com.google.ical.compat.jodatime.DateTimeIteratorFactoryTest.class);
+    this.addTestSuite(
+        com.google.ical.compat.jodatime.LocalDateIteratorFactoryTest.class);
     this.addTestSuite(com.google.ical.iter.CompoundIteratorImplTest.class);
     this.addTestSuite(com.google.ical.iter.ConditionsTest.class);
     this.addTestSuite(com.google.ical.iter.DateValueComparisonTest.class);

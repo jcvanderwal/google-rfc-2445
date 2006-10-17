@@ -36,9 +36,9 @@ public class DateIteratorFactoryTest extends TestCase {
       TimeZone.getTimeZone("America/Los_Angeles");
 
   public void testDateValueToDate() throws Exception {
-    assertEquals(createDateUtc(2006, 10, 13, 0, 0, 0).getTime(),
+    assertEquals(createDateUtc(2006, 10, 13, 0, 0, 0),
                  DateIteratorFactory.dateValueToDate(
-                     new DateValueImpl(2006, 10, 13)).getTime());
+                     new DateValueImpl(2006, 10, 13)));
     assertEquals(createDateUtc(2006, 10, 13, 12, 30, 1),
                  DateIteratorFactory.dateValueToDate(
                      new DateTimeValueImpl(2006, 10, 13, 12, 30, 1)));
