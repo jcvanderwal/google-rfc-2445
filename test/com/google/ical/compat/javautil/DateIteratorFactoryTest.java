@@ -32,6 +32,9 @@ import junit.framework.TestCase;
  */
 public class DateIteratorFactoryTest extends TestCase {
 
+  private static final TimeZone PST =
+      TimeZone.getTimeZone("America/Los_Angeles");
+
   public void testDateValueToDate() throws Exception {
     assertEquals(createDateUtc(2006, 10, 13, 0, 0, 0).getTime(),
                  DateIteratorFactory.dateValueToDate(
@@ -65,10 +68,88 @@ public class DateIteratorFactoryTest extends TestCase {
                           DateIteratorFactory.dateValueToDate(dtv), true));
   }
 
+  public void testCreateDateIterableUntimed() throws Exception {
+    DateIterable iterable = DateIteratorFactory.createDateIterable(
+        "RRULE:FREQ=DAILY;INTERVAL=2;COUNT=8\n"
+        + "EXDATE:20060103,20060105,20060107T000000,20060113",
+        date(2006, 1, 1), PST, true);
+
+    DateIterator it = iterable.iterator();
+    assertTrue(it.hasNext());
+    assertEquals(date(2006, 1, 1), it.next());
+    assertTrue(it.hasNext());
+    assertEquals(date(2006, 1, 7), it.next());  // does not match midnight
+    assertTrue(it.hasNext());
+    assertEquals(date(2006, 1, 9), it.next());
+    assertTrue(it.hasNext());
+    assertEquals(date(2006, 1, 11), it.next());
+    assertTrue(it.hasNext());
+    assertEquals(date(2006, 1, 15), it.next());
+    assertTrue(!it.hasNext());
+
+    it = iterable.iterator();
+    it.advanceTo(date(2006, 1, 9));
+    assertTrue(it.hasNext());
+    assertEquals(date(2006, 1, 9), it.next());
+    assertTrue(it.hasNext());
+    assertEquals(date(2006, 1, 11), it.next());
+    assertTrue(it.hasNext());
+    assertEquals(date(2006, 1, 15), it.next());
+    assertTrue(!it.hasNext());
+  }
+
+  public void testCreateDateIterableTimed() throws Exception {
+    DateIterable iterable = DateIteratorFactory.createDateIterable(
+        "RRULE:FREQ=DAILY;INTERVAL=2;COUNT=8\n"
+        + "EXDATE:20060103T123001,20060105T123001,20060107,20060113T123001",
+        date(2006, 1, 1, 12, 30, 1), PST, true);
+
+    DateIterator it = iterable.iterator();
+    assertTrue(it.hasNext());
+    assertEquals(date(2006, 1, 1, 20, 30, 1), it.next());
+    assertTrue(it.hasNext());
+    assertEquals(date(2006, 1, 7, 20, 30, 1), it.next());
+    assertTrue(it.hasNext());
+    assertEquals(date(2006, 1, 9, 20, 30, 1), it.next());
+    assertTrue(it.hasNext());
+    assertEquals(date(2006, 1, 11, 20, 30, 1), it.next());
+    assertTrue(it.hasNext());
+    assertEquals(date(2006, 1, 15, 20, 30, 1), it.next());
+    assertTrue(!it.hasNext());
+
+    it = iterable.iterator();
+    it.advanceTo(date(2006, 1, 9));
+    assertTrue(it.hasNext());
+    assertEquals(date(2006, 1, 9, 20, 30, 1), it.next());
+    assertTrue(it.hasNext());
+    assertEquals(date(2006, 1, 11, 20, 30, 1), it.next());
+    assertTrue(it.hasNext());
+    assertEquals(date(2006, 1, 15, 20, 30, 1), it.next());
+    assertTrue(!it.hasNext());
+
+
+    it = iterable.iterator();
+    it.advanceTo(date(2006, 1, 9, 22, 30, 1));  // advance past
+    assertTrue(it.hasNext());
+    assertEquals(date(2006, 1, 11, 20, 30, 1), it.next());
+    assertTrue(it.hasNext());
+    assertEquals(date(2006, 1, 15, 20, 30, 1), it.next());
+    assertTrue(!it.hasNext());
+  }
+
   private Date createDateUtc(int ye, int mo, int da, int ho, int mi, int se) {
     Calendar c = new GregorianCalendar(TimeUtils.utcTimezone());
     c.clear();
     c.set(ye, mo - 1, da, ho, mi, se);
     return c.getTime();
+  }
+
+  private static Date date(int y, int m, int d) {
+    return DateIteratorFactory.dateValueToDate(new DateValueImpl(y, m, d));
+  }
+
+  private static Date date(int y, int m, int d, int h, int n, int s) {
+    return DateIteratorFactory.dateValueToDate(
+        new DateTimeValueImpl(y, m, d, h, n, s));
   }
 }

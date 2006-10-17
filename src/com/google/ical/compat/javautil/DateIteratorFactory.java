@@ -14,6 +14,7 @@
 
 package com.google.ical.compat.javautil;
 
+import com.google.ical.iter.RecurrenceIterable;
 import com.google.ical.iter.RecurrenceIterator;
 import com.google.ical.iter.RecurrenceIteratorFactory;
 import com.google.ical.util.TimeUtils;
@@ -21,6 +22,7 @@ import com.google.ical.values.DateTimeValueImpl;
 import com.google.ical.values.DateValue;
 import com.google.ical.values.DateValueImpl;
 import com.google.ical.values.TimeValue;
+import java.text.ParseException;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
@@ -30,11 +32,50 @@ import java.util.TimeZone;
  * a factory for converting RRULEs and RDATEs into
  * <code>Iterator&lt;Date&gt;</code> and <code>Iterable&lt;Date&gt;</code>.
  *
+ * @see RecurrenceIteratorFactory
+ *
  * @author Mike Samuel (msamuel@google.com)
  */
 public class DateIteratorFactory {
 
+  /**
+   * given a block of RRULE, EXRULE, RDATE, and EXDATE content lines, parse
+   * them into a single recurrence iterator.
+   * @param strict true if any failure to parse should result in a
+   *   ParseException.  false causes bad content lines to be logged and ignored.
+   */
+  public static DateIterator createDateIterator(
+      String rdata, Date start, TimeZone tzid, boolean strict)
+      throws ParseException {
+    return new RecurrenceIteratorWrapper(
+        RecurrenceIteratorFactory.createRecurrenceIterator(
+            rdata, dateToDateValue(start, true),
+            tzid, strict));
+  }
 
+  public static DateIterable createDateIterable(
+      String rdata, Date start, TimeZone tzid, boolean strict)
+      throws ParseException {
+    return new RecurrenceIterableWrapper(
+        RecurrenceIteratorFactory.createRecurrenceIterable(
+            rdata, dateToDateValue(start, true),
+            tzid, strict));
+  }
+
+  public static DateIterator createDateIterator(RecurrenceIterator rit) {
+    return new RecurrenceIteratorWrapper(rit);
+  }
+
+  private static final class RecurrenceIterableWrapper
+      implements DateIterable {
+    private final RecurrenceIterable it;
+
+    public RecurrenceIterableWrapper(RecurrenceIterable it) { this.it = it; }
+
+    public DateIterator iterator() {
+      return new RecurrenceIteratorWrapper(it.iterator());
+    }
+  }
 
   private static final class RecurrenceIteratorWrapper
       implements DateIterator {
