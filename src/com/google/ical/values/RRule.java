@@ -29,7 +29,7 @@ import java.util.regex.Pattern;
 /**
  * encapsulates an RFC 2445 RRULE or EXRULE.
  *
- * @author msamuel@google.com (Mike Samuel)
+ * @author mikesamuel+svn@gmail.com (Mike Samuel)
  */
 public class RRule extends AbstractIcalObject {
 

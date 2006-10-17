@@ -19,7 +19,7 @@ import java.util.TimeZone;
 import junit.framework.TestCase;
 
 /**
- * @author msamuel@google.com (Mike Samuel)
+ * @author mikesamuel+svn@gmail.com (Mike Samuel)
  */
 public class IcalParseUtilTest extends TestCase {
 

@@ -30,7 +30,7 @@ package com.google.ical.values;
  * MONTHLY rule, MO represents all Mondays within the month.
  * </blockquote>
  *
- * @author msamuel@google.com
+ * @author mikesamuel+svn@gmail.com (Mike Samuel)
  */
 public class WeekdayNum {
   public final int num;

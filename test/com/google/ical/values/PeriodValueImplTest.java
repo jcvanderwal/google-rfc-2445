@@ -30,7 +30,7 @@ import junit.framework.TestCase;
 /**
  * testcases for {@link PeriodValueImpl}.
  *
- * @author msamuel@google.com (Mike Samuel)
+ * @author mikesamuel+svn@gmail.com (Mike Samuel)
  */
 public class PeriodValueImplTest extends TestCase {
 

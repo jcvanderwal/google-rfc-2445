@@ -28,7 +28,7 @@ import junit.framework.TestCase;
 /**
  * testcases for {@link DateIteratorFactory}.
  *
- * @author Mike Samuel (msamuel@google.com)
+ * @author mikesamuel+svn@gmail.com (Mike Samuel)
  */
 public class DateIteratorFactoryTest extends TestCase {
 

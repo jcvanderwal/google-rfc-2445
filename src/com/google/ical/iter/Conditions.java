@@ -20,7 +20,7 @@ import com.google.ical.values.DateValue;
 /**
  * factory for predicates used to test whether a recurrence is over.
  *
- * @author msamuel@google.com (Mike Samuel)
+ * @author mikesamuel+svn@gmail.com (Mike Samuel)
  */
 final class Conditions {
 

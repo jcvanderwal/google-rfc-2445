@@ -22,7 +22,7 @@ import com.google.ical.values.DateValue;
 /**
  * a dumping ground for utility functions that don't fit anywhere else.
  *
- * @author msamuel@google.com (Mike Samuel)
+ * @author mikesamuel+svn@gmail.com (Mike Samuel)
  */
 class Util {
 

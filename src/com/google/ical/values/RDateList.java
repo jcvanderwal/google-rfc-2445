@@ -24,7 +24,7 @@ import java.util.TimeZone;
  *
  * <p>See RFC 2445 sections 4.8.5.1 and 4.8.5.3.
  *
- * @author msamuel@google.com (Mike Samuel)
+ * @author mikesamuel+svn@gmail.com (Mike Samuel)
  */
 public class RDateList extends AbstractIcalObject {
 

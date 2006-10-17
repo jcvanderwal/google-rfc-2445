@@ -19,7 +19,7 @@ import com.google.ical.util.TimeUtils;
 /**
  * a half-open range of {@link DateValue}s.
  *
- * @author msamuel@google.com (Mike Samuel)
+ * @author mikesamuel+svn@gmail.com (Mike Samuel)
  */
 public class PeriodValueImpl implements PeriodValue {
 

@@ -25,7 +25,7 @@ import java.util.regex.Pattern;
 /**
  * Base class for a mutable ICAL object.
  *
- * @author msamuel@google.com (Mike Samuel)
+ * @author mikesamuel+svn@gmail.com (Mike Samuel)
  */
 abstract class AbstractIcalObject implements IcalObject {
   private static final Pattern CONTENT_LINE_RE = Pattern.compile(

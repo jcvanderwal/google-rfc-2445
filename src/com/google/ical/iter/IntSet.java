@@ -19,7 +19,7 @@ import java.util.BitSet;
 /**
  * a set of integers in a small range.
  *
- * @author msamuel@google.com (Mike Samuel)
+ * @author mikesamuel+svn@gmail.com (Mike Samuel)
  */
 final class IntSet {
 

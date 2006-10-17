@@ -21,7 +21,7 @@ import java.util.Iterator;
  * an iterator over date values in order.  Does not support the
  * <code>remove</code> operation.
  *
- * @author msamuel@google.com (Mike Samuel)
+ * @author mikesamuel+svn@gmail.com (Mike Samuel)
  */
 public interface RecurrenceIterator extends Iterator<DateValue> {
 

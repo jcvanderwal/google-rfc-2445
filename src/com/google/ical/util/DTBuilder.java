@@ -25,7 +25,7 @@ import com.google.ical.values.TimeValue;
  * a mutable buffer that can be used to build {@link DateValue}s and
  * {@link DateTimeValue}s.
  *
- * @author msamuel@google.com (Mike Samuel)
+ * @author mikesamuel+svn@gmail.com (Mike Samuel)
  */
 public class DTBuilder {
 

@@ -24,7 +24,7 @@ import java.util.PriorityQueue;
  * a recurrence iterator that combines others.  Some may be inclusions, and
  * some may be exclusions.
  *
- * @author msamuel@google.com (Mike Samuel)
+ * @author mikesamuel+svn@gmail.com (Mike Samuel)
  */
 final class CompoundIteratorImpl implements RecurrenceIterator {
 

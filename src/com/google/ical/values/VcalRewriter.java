@@ -20,7 +20,7 @@ import java.util.regex.Pattern;
 /**
  * converts vcal recurrence rules to ical.
  *
- * @author msamuel@google.com (Mike Samuel)
+ * @author mikesamuel+svn@gmail.com (Mike Samuel)
  */
 final class VcalRewriter {
 

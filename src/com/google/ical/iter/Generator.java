@@ -26,7 +26,7 @@ import com.google.ical.util.DTBuilder;
  * a month generator will update bldr.month, taking its cue from bldr.year,
  * also leaving the smaller fields unchanged.</p>
  *
- * @author msamuel@google.com (Mike Samuel)
+ * @author mikesamuel+svn@gmail.com (Mike Samuel)
  */
 abstract class Generator {
 

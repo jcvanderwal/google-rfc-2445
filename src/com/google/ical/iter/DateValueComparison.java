@@ -54,7 +54,7 @@ import com.google.ical.values.TimeValue;
  * which timezone we should consider midnight in, and a total ordering allows
  * us to avoid timezone conversions during iteration.</p>
  *
- * @author msamuel@google.com (Mike Samuel)
+ * @author mikesamuel+svn@gmail.com (Mike Samuel)
  */
 final class DateValueComparison {
 

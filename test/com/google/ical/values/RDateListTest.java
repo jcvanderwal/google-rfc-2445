@@ -21,7 +21,7 @@ import junit.framework.TestCase;
 import java.util.TimeZone;
 
 /**
- * @author msamuel@google.com (Mike Samuel)
+ * @author mikesamuel+svn@gmail.com (Mike Samuel)
  */
 public class RDateListTest extends TestCase {
 

@@ -40,7 +40,7 @@ import junit.framework.TestCase;
 /**
  * simulate a large number of monkeys banging on a calendar.
  *
- * @author msamuel@google.com (Mike Samuel)
+ * @author mikesamuel+svn@gmail.com (Mike Samuel)
  */
 public class MonkeyKeyboardTest extends TestCase {
 

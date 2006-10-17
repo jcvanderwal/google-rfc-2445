@@ -33,7 +33,7 @@ import com.google.ical.util.TimeUtils;
  * <p>A filter returns true to indicate the item is included in the
  * recurrence.</p>
  *
- * @author msamuel@google.com (Mike Samuel)
+ * @author mikesamuel+svn@gmail.com (Mike Samuel)
  */
 class Filters {
 

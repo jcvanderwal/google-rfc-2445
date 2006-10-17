@@ -25,7 +25,7 @@ import java.util.Arrays;
 /**
  * factory for field generators.
  *
- * @author msamuel@google.com (Mike Samuel)
+ * @author mikesamuel+svn@gmail.com (Mike Samuel)
  */
 final class Generators {
 

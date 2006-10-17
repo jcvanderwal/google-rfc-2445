@@ -20,7 +20,7 @@ package com.google.ical.values;
  * end is exclusive.  The end must be on or after the start.  When the start and
  * end are the same, the period is zero width, i.e. contains zero seconds.
  *
- * @author msamuel@google.com (Mike Samuel)
+ * @author mikesamuel+svn@gmail.com (Mike Samuel)
  */
 public interface PeriodValue {
 

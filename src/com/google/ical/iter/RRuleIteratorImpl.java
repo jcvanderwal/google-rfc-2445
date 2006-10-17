@@ -25,7 +25,7 @@ import java.util.TimeZone;
 /**
  * an iterator over dates in an RRULE or EXRULE series.
  *
- * @author msamuel@google.com (Mike Samuel)
+ * @author mikesamuel+svn@gmail.com (Mike Samuel)
  */
 final class RRuleIteratorImpl implements RecurrenceIterator {
   /**

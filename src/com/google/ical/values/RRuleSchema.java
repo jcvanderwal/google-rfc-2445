@@ -27,7 +27,7 @@ import java.util.regex.Pattern;
 /**
  * ical schema for parsing RRULE and EXRULE content lines.
  *
- * @author msamuel@google.com (Mike Samuel)
+ * @author mikesamuel+svn@gmail.com (Mike Samuel)
  */
 class RRuleSchema extends IcalSchema{
 

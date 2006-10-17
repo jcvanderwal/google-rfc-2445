@@ -28,7 +28,7 @@ import java.util.List;
  * factory for generators that operate on groups of generators to generate full
  * dates.
  *
- * @author msamuel@google.com (Mike Samuel)
+ * @author mikesamuel+svn@gmail.com (Mike Samuel)
  */
 class InstanceGenerators {
 

@@ -22,7 +22,7 @@ import java.lang.reflect.Field;
 import junit.framework.TestCase;
 
 /**
- * @author msamuel@google.com (Mike Samuel)
+ * @author mikesamuel+svn@gmail.com (Mike Samuel)
  */
 public class GeneratorsTest extends TestCase {
 

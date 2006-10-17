@@ -24,7 +24,7 @@ import java.util.regex.Pattern;
 /**
  * static functions for parsing ical values.
  *
- * @author msamuel@google.com (Mike Samuel)
+ * @author mikesamuel+svn@gmail.com (Mike Samuel)
  */
 public final class IcalParseUtil {
 

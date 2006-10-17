@@ -20,7 +20,7 @@ import com.google.ical.values.DateValueImpl;
 import junit.framework.TestCase;
 
 /**
- * @author msamuel@google.com (Mike Samuel)
+ * @author mikesamuel+svn@gmail.com (Mike Samuel)
  */
 public class DateValueComparisonTest extends TestCase {
 

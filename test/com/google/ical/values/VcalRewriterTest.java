@@ -17,7 +17,7 @@ package com.google.ical.values;
 import junit.framework.TestCase;
 
 /**
- * @author msamuel@google.com (Mike Samuel)
+ * @author mikesamuel+svn@gmail.com (Mike Samuel)
  */
 public class VcalRewriterTest extends TestCase {
 

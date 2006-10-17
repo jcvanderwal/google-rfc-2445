@@ -60,7 +60,7 @@ import java.util.regex.Pattern;
  *
  * <p>All the functions that represent rule parts are stateful.
  *
- * @author msamuel@google.com (Mike Samuel)
+ * @author mikesamuel+svn@gmail.com (Mike Samuel)
  */
 public class RecurrenceIteratorFactory {
 

@@ -18,7 +18,7 @@ import java.util.Map;
 
 /**
  *
- * @author msamuel@google.com (Mike Samuel)
+ * @author mikesamuel+svn@gmail.com (Mike Samuel)
  */
 public interface IcalObject {
 

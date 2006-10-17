@@ -27,7 +27,7 @@ import java.util.regex.Pattern;
  * This schema encapsulates rules that can be applied to parse each part before
  * inserting the results into the {@link IcalObject}.
  *
- * @author msamuel@google.com (Mike Samuel)
+ * @author mikesamuel+svn@gmail.com (Mike Samuel)
  */
 class IcalSchema {
 

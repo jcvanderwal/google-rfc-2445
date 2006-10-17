@@ -28,7 +28,7 @@ import junit.framework.TestCase;
 
 /**
  *
- * @author msamuel@google.com (Mike Samuel)
+ * @author mikesamuel+svn@gmail.com (Mike Samuel)
  */
 public class CompoundIteratorImplTest extends TestCase {
   // TODO(msamuel): add these tests to javascript too

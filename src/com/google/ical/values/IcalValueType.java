@@ -59,7 +59,7 @@ package com.google.ical.values;
  * by some other allowable value type, then this parameter MUST be specified.
  * </pre>
  *
- * @author msamuel@google.com (Mike Samuel)
+ * @author mikesamuel+svn@gmail.com (Mike Samuel)
  */
 public enum IcalValueType {
 

@@ -26,7 +26,7 @@ import org.joda.time.DateTimeZone;
 /**
  * testcases for {@link DateTimeIteratorFactory}.
  *
- * @author Mike Samuel (msamuel@google.com)
+ * @author mikesamuel+svn@gmail.com (Mike Samuel)
  */
 public class DateTimeIteratorFactoryTest extends TestCase {
 

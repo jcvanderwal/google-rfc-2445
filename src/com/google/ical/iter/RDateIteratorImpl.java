@@ -19,7 +19,7 @@ import com.google.ical.values.DateValue;
 /**
  * a recurrence iterator that iterates over an array of dates.
  *
- * @author msamuel@google.com (Mike Samuel)
+ * @author mikesamuel+svn@gmail.com (Mike Samuel)
  */
 final class RDateIteratorImpl implements RecurrenceIterator {
   private int i;

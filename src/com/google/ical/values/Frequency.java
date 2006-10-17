@@ -32,7 +32,7 @@ package com.google.ical.values;
  * more.
  * </blockquote>
  *
- * @author msamuel@google.com (Mike Samuel)
+ * @author mikesamuel+svn@gmail.com (Mike Samuel)
  */
 public enum Frequency {
   // in order of increasing length

@@ -17,7 +17,7 @@ package com.google.ical.iter;
 import junit.framework.TestCase;
 
 /**
- * @author msamuel@google.com (Mike Samuel)
+ * @author mikesamuel+svn@gmail.com (Mike Samuel)
  */
 public class IntSetTest extends TestCase {
 

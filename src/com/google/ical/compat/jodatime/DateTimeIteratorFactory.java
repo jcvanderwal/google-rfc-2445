@@ -35,7 +35,7 @@ import org.joda.time.ReadableDateTime;
  *
  * @see RecurrenceIteratorFactory
  *
- * @author Mike Samuel (msamuel@google.com)
+ * @author mikesamuel+svn@gmail.com (Mike Samuel)
  */
 public class DateTimeIteratorFactory {
 

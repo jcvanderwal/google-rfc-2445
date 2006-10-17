@@ -19,7 +19,7 @@ import com.google.ical.values.DateValue;
 /**
  * an iterable over date values in order.
  *
- * @author msamuel@google.com (Mike Samuel)
+ * @author mikesamuel+svn@gmail.com (Mike Samuel)
  */
 public interface RecurrenceIterable extends Iterable<DateValue> {
 

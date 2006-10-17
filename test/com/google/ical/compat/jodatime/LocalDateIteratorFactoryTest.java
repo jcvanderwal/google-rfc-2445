@@ -26,7 +26,7 @@ import org.joda.time.LocalDate;
 /**
  * testcases for {@link LocalDateIteratorFactory}.
  *
- * @author Mike Samuel (msamuel@google.com)
+ * @author mikesamuel+svn@gmail.com (Mike Samuel)
  */
 public class LocalDateIteratorFactoryTest extends TestCase {
 

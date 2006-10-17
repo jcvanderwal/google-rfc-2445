@@ -19,7 +19,7 @@ import com.google.ical.util.TimeUtils;
 /**
  * days of the week enum.  Names correspond to RFC2445 literals.
  *
- * @author msamuel@google.com (Mike Samuel)
+ * @author mikesamuel+svn@gmail.com (Mike Samuel)
  */
 public enum Weekday {
   SU(0),

@@ -19,7 +19,7 @@ import org.joda.time.LocalDate;
 /**
  * an iterable over dates in order.
  *
- * @author msamuel@google.com (Mike Samuel)
+ * @author mikesamuel+svn@gmail.com (Mike Samuel)
  */
 public interface LocalDateIterable extends Iterable<LocalDate> {
 
