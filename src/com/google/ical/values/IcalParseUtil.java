@@ -82,8 +82,8 @@ public final class IcalParseUtil {
       throws ParseException {
     int sep = s.indexOf('/');
     if (sep < 0) { throw new ParseException(s, s.length()); }
-    DateValue start = parseDateValue(s.substring(0, sep)),
-                end = parseDateValue(s.substring(sep + 1));
+    DateValue start = parseDateValue(s.substring(0, sep), tzid),
+                end = parseDateValue(s.substring(sep + 1), tzid);
     if ((start instanceof TimeValue) != (end instanceof TimeValue)) {
       throw new ParseException(s, 0);
     }

@@ -17,7 +17,6 @@ package com.google.ical.compat.jodatime;
 import com.google.ical.iter.RecurrenceIterable;
 import com.google.ical.iter.RecurrenceIterator;
 import com.google.ical.iter.RecurrenceIteratorFactory;
-import com.google.ical.util.TimeUtils;
 import com.google.ical.values.DateValue;
 import com.google.ical.values.DateValueImpl;
 import java.text.ParseException;
@@ -136,7 +135,6 @@ public class LocalDateIteratorFactory {
     }
   }
 
-  private static final long MILLIS_PER_SECOND = 1000;
   static LocalDate dateValueToLocalDate(DateValue dvUtc) {
     return new LocalDate(dvUtc.year(), dvUtc.month(), dvUtc.day());
   }

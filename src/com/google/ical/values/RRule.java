@@ -14,17 +14,10 @@
 
 package com.google.ical.values;
 
-import com.google.ical.util.TimeUtils;
-
 import java.text.ParseException;
 import java.util.ArrayList;
-import java.util.EnumSet;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import java.util.regex.Pattern;
 
 /**
  * encapsulates an RFC 2445 RRULE or EXRULE.
@@ -32,8 +25,6 @@ import java.util.regex.Pattern;
  * @author mikesamuel+svn@gmail.com (Mike Samuel)
  */
 public class RRule extends AbstractIcalObject {
-
-  private static final Logger LOGGER = Logger.getLogger(RRule.class.getName());
 
   private Frequency freq;
   private Weekday wkst;
@@ -49,13 +40,6 @@ public class RRule extends AbstractIcalObject {
   private int[] byMinute = NO_INTS;  // in [0-59]
   private int[] bySecond = NO_INTS;  // in [0-60]
   private int[] bySetPos = NO_INTS;  // in +/-[1-366]
-
-  private static final Pattern TRAILING_GARBAGE =
-    Pattern.compile("(?:&nbsp;|&#32;|[,\\s])+$");
-  private static final Pattern LEADING_GARBAGE =
-    Pattern.compile("^(?:&nbsp;|&#32;|[,\\s])+");
-  private static final Pattern NORM_COMMAS = Pattern.compile("\\s*,+");
-  private static final Pattern NORM_SPACE = Pattern.compile("\\s\\s+");
 
   private static final int[] NO_INTS = new int[0];
 

@@ -14,7 +14,6 @@
 
 package com.google.ical.values;
 
-import com.google.ical.util.TimeUtils;
 import java.text.ParseException;
 import java.util.Map;
 import java.util.TimeZone;

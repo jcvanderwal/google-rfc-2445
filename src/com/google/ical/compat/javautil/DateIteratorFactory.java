@@ -110,7 +110,6 @@ public class DateIteratorFactory {
     }
   }
 
-  private static final long MILLIS_PER_SECOND = 1000;
   static Date dateValueToDate(DateValue dvUtc) {
     GregorianCalendar c = new GregorianCalendar(TimeUtils.utcTimezone());
     c.clear();
