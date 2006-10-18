@@ -52,7 +52,7 @@ public class DateTimeIteratorFactory {
     return new RecurrenceIteratorWrapper(
         RecurrenceIteratorFactory.createRecurrenceIterator(
             rdata, dateTimeToDateValue(start.toDateTime().withZone(tzid)),
-            tzid.toTimeZone(), strict));
+            TimeZoneConverter.toTimeZone(tzid), strict));
   }
 
   /**
@@ -71,7 +71,7 @@ public class DateTimeIteratorFactory {
     return new RecurrenceIterableWrapper(
         RecurrenceIteratorFactory.createRecurrenceIterable(
             rdata, dateTimeToDateValue(start.toDateTime().withZone(tzid)),
-            tzid.toTimeZone(), strict));
+            TimeZoneConverter.toTimeZone(tzid), strict));
   }
 
   /**

@@ -50,7 +50,7 @@ public class LocalDateIteratorFactory {
     return new RecurrenceIteratorWrapper(
         RecurrenceIteratorFactory.createRecurrenceIterator(
             rdata, localDateToDateValue(start),
-            tzid.toTimeZone(), strict));
+            TimeZoneConverter.toTimeZone(tzid), strict));
   }
 
   /**
@@ -83,7 +83,7 @@ public class LocalDateIteratorFactory {
     return new RecurrenceIterableWrapper(
         RecurrenceIteratorFactory.createRecurrenceIterable(
             rdata, localDateToDateValue(start),
-            tzid.toTimeZone(), strict));
+            TimeZoneConverter.toTimeZone(tzid), strict));
   }
 
   /**

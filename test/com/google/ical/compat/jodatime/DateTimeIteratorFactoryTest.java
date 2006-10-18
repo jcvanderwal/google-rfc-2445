@@ -86,7 +86,6 @@ public class DateTimeIteratorFactoryTest extends TestCase {
     assertEquals(dateTime(2006, 1, 15, 20, 30, 1), it.next());
     assertTrue(!it.hasNext());
 
-
     it = iterable.iterator();
     it.advanceTo(dateTime(2006, 1, 9, 22, 30, 1));  // advance past
     assertTrue(it.hasNext());
