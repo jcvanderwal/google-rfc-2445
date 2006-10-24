@@ -14,18 +14,23 @@
 
 package com.google.ical.compat.jodatime;
 
-import java.util.GregorianCalendar;
+import java.util.Calendar;
 import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.TimeZone;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
-import org.joda.time.tz.FixedDateTimeZone;
 
 /**
  * Replacement for Joda-time's broken {@link DateTimeZone#toTimeZone} which
- * will return a {@link java.util.TimeZone}.  <code>java.util.TimeZones</code>
- * should not be used since they're frequently not up-to-date re Brazilian
- * timezones.
+ * returns a <code>java.util.TimeZone</code> that supposedly is equivalent to
+ * the <code>DateTimeZone</code>.
+ * Joda time's implementation simply uses the ID to look up the corresponding
+ * <code>java.util.TimeZone</code>s which should not be used since they're
+ * frequently out-of-date re Brazilian timezones.
+ *
+ * <p>See <a href="http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4328058"
+ * >Sun bug 4328058</a>.
  *
  * @author mikesamuel+svn@gmail.com (Mike Samuel)
  */
@@ -35,26 +40,42 @@ final class TimeZoneConverter {
   static final int MILLISECONDS_PER_MINUTE = 60 * MILLISECONDS_PER_SECOND;
   static final int MILLISECONDS_PER_HOUR = 60 * MILLISECONDS_PER_MINUTE;
 
+  /**
+   * return a <code>java.util.Timezone</code> object that delegates to the given
+   * Joda <code>DateTimeZone</code>.
+   */
   static TimeZone toTimeZone(final DateTimeZone dtz) {
     if (dtz.isFixed()) { return dtz.toTimeZone(); }  // efficient for UTC
 
     TimeZone tz = new TimeZone() {
+        @Override
         public void setRawOffset(int n) {
           throw new UnsupportedOperationException();
         }
+        @Override
         public boolean useDaylightTime() {
           return !dtz.isFixed();
         }
+        @Override
         public boolean inDaylightTime(Date d) {
           long t = d.getTime();
           return dtz.getStandardOffset(t) != dtz.getOffset(t);
         }
+        @Override
         public int getRawOffset() {
           return dtz.getStandardOffset(0);
         }
+        @Override
         public int getOffset(long instant) {
+          // This method is not abstract, but it normally calls through to the
+          // method below.
+          // It's optimized here since there's a direct equivalent in
+          // DateTimeZone.
+          // DateTimeZone and java.util.TimeZone use the same
+          // epoch so there's no translation of instant required.
           return dtz.getOffset(instant);
         }
+        @Override
         public int getOffset(
             int era, int year, int month, int day, int dayOfWeek,
             int milliseconds) {
@@ -67,41 +88,46 @@ final class TimeZoneConverter {
           millis %= MILLISECONDS_PER_SECOND;
           if (era == GregorianCalendar.BC) { year = -(year - 1); }
 
-          DateTime dt = new DateTime(year, month + 1, day, hour, minute,
-                                     second, millis, dtz);
+          // get the time in UTC in case a timezone has changed it's standard
+          // offset, e.g. rid of a half hour from UTC.
+          DateTime dt = null;
+          try {
+            dt = new DateTime(year, month + 1, day, hour, minute,
+                              second, millis, dtz);
+          } catch (IllegalArgumentException ex) {
+            // Java does not complain if you try to convert a Date that does not
+            // exist due to the offset shifting forward, but Joda time does.
+            // Since we're trying to preserve the semantics of TimeZone, shift
+            // forward over the gap so that we're on a time that exists.
+            // This assumes that the DST correction is one hour long or less.
+            if (hour < 23) {
+              dt = new DateTime(year, month + 1, day, hour + 1, minute,
+                                second, millis, dtz);
+            } else {  // Some timezones shift at midnight.
+              Calendar c = new GregorianCalendar();
+              c.clear();
+              c.setTimeZone(TimeZone.getTimeZone("UTC"));
+              c.set(year, month, day, hour, minute, second);
+              c.add(Calendar.HOUR_OF_DAY, 1);
+              int year2 = c.get(Calendar.YEAR),
+                 month2 = c.get(Calendar.MONTH),
+                   day2 = c.get(Calendar.DAY_OF_MONTH),
+                  hour2 = c.get(Calendar.HOUR_OF_DAY);
+              dt = new DateTime(year2, month2 + 1, day2, hour2, minute,
+                                second, millis, dtz);
+            }
+          }
+          // since millis is in standard time, we construct the equivalent
+          // GMT+xyz timezone and use that to convert.
           int offset = dtz.getStandardOffset(dt.getMillis());
-          DateTime stdDt = new DateTime(year, month + 1, day, hour, minute,
-                                        second, millis, standardTz(offset));
+          DateTime stdDt = new DateTime(
+              year, month + 1, day, hour, minute,
+              second, millis, DateTimeZone.forOffsetMillis(offset));
           return getOffset(stdDt.getMillis());
         }
       };
     tz.setID(dtz.getID());
     return tz;
-  }
-
-  private static FixedDateTimeZone[] dtzCache;
-  private static FixedDateTimeZone standardTz(int offset) {
-    if (0 == (offset % (30 * MILLISECONDS_PER_MINUTE))) {
-      int i = (offset / (30 * MILLISECONDS_PER_MINUTE)) + 50;
-      if (i >= 0 && i <= 100) {
-        if (null == dtzCache) { dtzCache = new FixedDateTimeZone[100]; }
-        if (null == dtzCache[i]) {
-          dtzCache[i] = makeStandardTz(offset);
-        }
-        return dtzCache[i];
-      }
-    }
-    return makeStandardTz(offset);
-  }
-
-  private static FixedDateTimeZone makeStandardTz(int offset) {
-    int absOffset = Math.abs(offset);
-    String id = String.format(
-        "GMT%c%02d%02d",
-        offset < 0 ? '-' : '+',
-        absOffset / MILLISECONDS_PER_HOUR,
-        (absOffset % MILLISECONDS_PER_HOUR) / MILLISECONDS_PER_MINUTE);
-    return new FixedDateTimeZone(id, id, offset, offset);
   }
 
   private TimeZoneConverter() {

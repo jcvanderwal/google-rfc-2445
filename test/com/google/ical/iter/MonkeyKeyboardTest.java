@@ -54,7 +54,7 @@ public class MonkeyKeyboardTest extends TestCase {
   protected void setUp() throws Exception {
     super.setUp();
     seed = null != rnd ? rnd.nextLong() : System.currentTimeMillis();
-    System.out.println("\n\nRANDOM SEED " + seed + "\n");
+    System.out.println("RANDOM SEED " + seed + " : " + getName());
     rnd = new Random(seed);
     refDate = new DTBuilder(1900 + rnd.nextInt(200), 1, rnd.nextInt(366) + 1)
         .toDate();

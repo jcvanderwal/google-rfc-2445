@@ -48,7 +48,7 @@ public class StressTest extends TestCase {
       runOne();
     }
     long dt = System.nanoTime() - t0;
-    System.err.println("Took " + (dt / 1e6) + " ms");
+    System.out.println(getName() + " took " + (dt / 1e6) + " ms");
   }
 
   static String[] RECURRENCE_RULES = {
