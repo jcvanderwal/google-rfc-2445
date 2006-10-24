@@ -50,7 +50,7 @@ final class RRuleIteratorImpl implements RecurrenceIterator {
    * a function that takes a builder and populates the year field.
    * Returns false if no more years available.
    */
-  private final Generator yearGenerator_;
+  private final ThrottledGenerator yearGenerator_;
   /**
    * a function that takes a builder and populates the month field.
    * Returns false if no more months available in the builder's year.
@@ -92,7 +92,7 @@ final class RRuleIteratorImpl implements RecurrenceIterator {
   RRuleIteratorImpl(
     DateValue dtStart, TimeZone tzid, Predicate<? super DateValue> condition,
     Predicate<? super DateValue> filter,
-    Generator instanceGenerator, Generator yearGenerator,
+    Generator instanceGenerator, ThrottledGenerator yearGenerator,
     Generator monthGenerator, Generator dayGenerator,
     boolean canShortcutAdvance, TimeValue startTime) {
 
@@ -229,6 +229,7 @@ final class RRuleIteratorImpl implements RecurrenceIterator {
     // check the exit condition
     if (null != dUtc && this.condition_.apply(dUtc)) {
       this.pendingUtc_ = dUtc;
+      this.yearGenerator_.workDone();
     } else {
       this.done_ = true;
     }

@@ -206,7 +206,7 @@ public class RecurrenceIteratorFactory {
 
     // recurrences are implemented as a sequence of periodic generators.
     // First a year is generated, and then months, and within months, days
-    Generator yearGenerator = Generators.serialYearGenerator(
+    ThrottledGenerator yearGenerator = Generators.serialYearGenerator(
         freq == Frequency.YEARLY ? interval : 1, dtStart);
     Generator monthGenerator = null;
     Generator dayGenerator;

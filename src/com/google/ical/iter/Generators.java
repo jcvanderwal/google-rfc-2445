@@ -30,6 +30,17 @@ import java.util.Arrays;
 final class Generators {
 
   /**
+   * the maximum number of years generated between instances.
+   * See {@link ThrottledGenerator} for a description of the problem this
+   * solves.
+   * Note: this counts the maximum number of years generated, so for
+   * FREQ=YEARLY;INTERVAL=4 the generator would try 100 individual years over
+   * a span of 400 years before giving up and concluding that the rule generates
+   * no usable dates.
+   */
+  private static final int MAX_YEARS_BETWEEN_INSTANCES = 100;
+
+  /**
    * constructs a generator that generates years successively counting from the
    * first year passed in.
    * @param interval number of years to advance each step.
@@ -37,12 +48,12 @@ final class Generators {
    * @return the year in dtStart the first time called and interval + last
    *   return value on subsequent calls.
    */
-  static Generator serialYearGenerator(
+  static ThrottledGenerator serialYearGenerator(
       final int interval, final DateValue dtStart) {
-    return new Generator() {
+    return new ThrottledGenerator() {
         /** the last year seen */
         int year = dtStart.year() - interval;
-        int throttle = 100;
+        int throttle = MAX_YEARS_BETWEEN_INSTANCES;
 
         @Override
         boolean generate(DTBuilder builder)
@@ -52,15 +63,15 @@ final class Generators {
           //   FREQ=YEARLY;BYMONTHDAY=30;BYMONTH=2
           // should halt
 
-          // TODO(msamuel): "kick" the year generator when a lower generator
-          // produces something, or move the thresholding to the
-          // InstanceGenerator, so that we don't limit all recurrence rules.
           if (--throttle < 0) {
             throw IteratorShortCircuitingException.instance();
           }
           builder.year = year += interval;
           return true;
         }
+
+        @Override
+        void workDone() { this.throttle = MAX_YEARS_BETWEEN_INSTANCES; }
 
         @Override
         public String toString() { return "serialYearGenerator:" + interval; }
