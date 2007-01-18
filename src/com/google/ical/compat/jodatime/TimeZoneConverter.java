@@ -17,7 +17,9 @@ package com.google.ical.compat.jodatime;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
+import java.util.SimpleTimeZone;
 import java.util.TimeZone;
+
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 
@@ -41,11 +43,10 @@ final class TimeZoneConverter {
   static final int MILLISECONDS_PER_HOUR = 60 * MILLISECONDS_PER_MINUTE;
 
   /**
-   * return a <code>java.util.Timezone</code> object that delegates to the given
-   * Joda <code>DateTimeZone</code>.
+   * return a <code>java.util.Timezone</code> object that delegates to
+   * the given Joda <code>DateTimeZone</code>.
    */
-  static TimeZone toTimeZone(final DateTimeZone dtz) {
-    if (dtz.isFixed()) { return dtz.toTimeZone(); }  // efficient for UTC
+  public static TimeZone toTimeZone(final DateTimeZone dtz) {
 
     TimeZone tz = new TimeZone() {
         @Override
@@ -54,7 +55,8 @@ final class TimeZoneConverter {
         }
         @Override
         public boolean useDaylightTime() {
-          return !dtz.isFixed();
+          long firstTransition = 0L;
+          return firstTransition != dtz.nextTransition(firstTransition);
         }
         @Override
         public boolean inDaylightTime(Date d) {
@@ -125,9 +127,36 @@ final class TimeZoneConverter {
               second, millis, DateTimeZone.forOffsetMillis(offset));
           return getOffset(stdDt.getMillis());
         }
+
+        @Override
+        public String toString() {
+          return dtz.toString();
+        }
+
+        private static final long serialVersionUID = 58752546800455L;
       };
-    tz.setID(dtz.getID());
+    // Now fix the tzids.  DateTimeZone has a bad habit of returning
+    // "+06:00" when it should be "GMT+06:00"
+    String newTzid = cleanUpTzid(dtz.getID());
+    tz.setID(newTzid);
     return tz;
+  }
+
+  /**
+   * If tzid is of the form [+-]hh:mm, we rewrite it to GMT[+-]hh:mm
+   * Otherwise return it unchanged.
+   */
+  static String cleanUpTzid(String tzid) {
+    if ("".equals(tzid)) { return "GMT"; }
+    switch (tzid.charAt(0)) {
+      case '+': case '-':
+        return  "GMT" + tzid;
+      case '0': case '1': case '2': case '3': case '4':
+      case '5': case '6': case '7': case '8': case '9':
+        return "GMT+" + tzid;
+      default:
+        return tzid;
+    }
   }
 
   private TimeZoneConverter() {

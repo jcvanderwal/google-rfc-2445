@@ -31,13 +31,8 @@ import org.joda.time.DateTimeZone;
  */
 public class TimeZoneConverterTest extends TestCase {
 
-  long seed = System.currentTimeMillis();
-  Random rand;
-
   @Override
   protected void setUp() throws Exception {
-    System.out.println("RANDOM SEED " + seed + " : " + getName());
-    rand = new Random(seed);
     super.setUp();
   }
 
@@ -46,38 +41,34 @@ public class TimeZoneConverterTest extends TestCase {
     super.tearDown();
   }
 
-  public void testConvertMonteCarloToAndFromUtc() throws Exception {
-    TimeZone utilTz = TimeZone.getTimeZone("America/Los_Angeles");
-    TimeZone jodaTz = TimeZoneConverter.toTimeZone(
-        DateTimeZone.forID("America/Los_Angeles"));
-    for (int run = 5000; --run >= 0;) {
-      long t = rand.nextInt(366 * 24 * 60 * 60 * 1000);
-      DateTime randDate = new DateTime(t);
-      DateValue dtv = DateTimeIteratorFactory.dateTimeToDateValue(randDate);
-      assertEquals(
-          TimeUtils.fromUtc(dtv, utilTz),
-          TimeUtils.fromUtc(dtv, jodaTz));
-      assertEquals(
-          TimeUtils.toUtc(dtv, utilTz),
-          TimeUtils.toUtc(dtv, jodaTz));
-    }
-  }
-
   private static final long MILLIS_PER_DAY = 24 * 60 * 60 * 1000;
   private static final long MILLIS_PER_YEAR = (long) (365.25 * MILLIS_PER_DAY);
 
-  public void testOffsetMonteCarlo() throws Exception {
+  public void testConvertMonteCarlo() throws Exception {
+    long seed = 1161647988961L;
+    Random rand = new Random(seed);
+    System.out.println("seed=" + seed);
+
+    // DateTimeZone id, followed by TimeZone id (which is null if we
+    // are to reuse the DateTimeZone id)
     String[] tzids = {
-      "America/Los_Angeles",  // one in the Western hemisphire with daylight
-      "UTC",  // UTC
-      "Europe/Paris",  // one in the Eastern hemisphere with daylight savings
-      "Asia/Shanghai",  // one without daylight savings
-      "Pacific/Tongatapu",  // outside [-12,+12]
+      "America/Los_Angeles", null,  // one in the Western hemisphire
+                                    // with daylight
+      "America/Belize", null,
+      "UTC",  null,                 // UTC
+      "-07:00", "GMT-07:00",
+      "+08:15", "GMT+08:15",
+      "Europe/Paris",  null,        // one in the Eastern hemisphere with
+                                    // daylight savings
+      "Asia/Shanghai",  null,       // has daylight savings
+      "Pacific/Tongatapu",  null,   // outside [-12,+12]
     };
 
     long soon = System.currentTimeMillis() + (7 * MILLIS_PER_DAY);
-    for (String tzid : tzids) {
-      TimeZone utilTz = TimeZone.getTimeZone(tzid);
+    for (int i = 0; i < tzids.length; i+=2) {
+      String tzid = tzids[i];
+      String timeZoneTzid = tzids[i+1] == null ? tzid : tzids[i+1];
+      TimeZone utilTz = TimeZone.getTimeZone(timeZoneTzid);
       DateTimeZone jodaTz = DateTimeZone.forID(tzid);
       // make sure that the timezone is recognized and we're not just testing
       // UTC over and over.
@@ -97,6 +88,44 @@ public class TimeZoneConverterTest extends TestCase {
         assertOffsetsEqualForDate(utilTz, jodaTz, t);
       }
     }
+  }
+
+  public void testCleanUpTzid() throws Exception {
+    assertEquals("GMT+06:12", TimeZoneConverter.cleanUpTzid("06:12"));
+    assertEquals("GMT-07:00", TimeZoneConverter.cleanUpTzid("-07:00"));
+    assertEquals("GMT+12:00", TimeZoneConverter.cleanUpTzid("+12:00"));
+    // Improbable case (DateTimeZone won't return an ID of this form)
+    assertEquals("GMT+1:00", TimeZoneConverter.cleanUpTzid("+1:00"));
+  }
+
+  /**
+   * These may change as the DateTimeZone is updated!  Check
+   * http://www.worldtimezone.com/dst_news/ for updates.
+   */
+  public void testSomeTimeZonesDST() {
+    assertDST("America/Chicago", true);
+    // Guatemala should observe DST according to the link above!
+    assertDST("America/Guatemala", false); //*
+    // China should not observe DST
+    assertDST("Asia/Chongqing", false);
+    assertDST("Asia/Shanghai", false);
+    assertDST("Europe/Uzhgorod", true);
+    assertDST("Europe/Helsinki", true);
+    assertDST("Etc/GMT+3", false);
+    assertDST("Pacific/Port_Moresby", false);
+    assertDST("Australia/Sydney", true);
+    assertDST("UTC", false);
+  }
+
+  private static void assertDST(String tzid, boolean expectedHasDST) {
+    TimeZone tz = TimeZoneConverter.toTimeZone(DateTimeZone.forID(tzid));
+    assertEquals(tzid, tz.getID());
+    assertEquals(tzid + " has DST?: " + expectedHasDST,
+                 expectedHasDST, tz.useDaylightTime());
+    assertEquals(tzid + " has DST?: " + expectedHasDST,
+                 expectedHasDST ?
+                 1 * TimeZoneConverter.MILLISECONDS_PER_HOUR :
+                 0, tz.getDSTSavings());
   }
 
   private static void assertOffsetsEqualForDate(
