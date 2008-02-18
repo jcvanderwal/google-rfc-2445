@@ -55,13 +55,13 @@ public class TimeZoneConverterTest extends TestCase {
       "America/Los_Angeles", null,  // one in the Western hemisphire
                                     // with daylight
       "America/Belize", null,
-      "UTC",  null,                 // UTC
+      "UTC", null,                  // UTC
       "-07:00", "GMT-07:00",
       "+08:15", "GMT+08:15",
-      "Europe/Paris",  null,        // one in the Eastern hemisphere with
+      "Europe/Paris", null,         // one in the Eastern hemisphere with
                                     // daylight savings
-      "Asia/Shanghai",  null,       // has daylight savings
-      "Pacific/Tongatapu",  null,   // outside [-12,+12]
+      "Asia/Shanghai", null,        // has daylight savings
+      "Pacific/Tongatapu", null,    // outside [-12,+12]
     };
 
     long soon = System.currentTimeMillis() + (7 * MILLIS_PER_DAY);
@@ -103,9 +103,9 @@ public class TimeZoneConverterTest extends TestCase {
    * http://www.worldtimezone.com/dst_news/ for updates.
    */
   public void testSomeTimeZonesDST() {
+    assertDST("UTC", false);
     assertDST("America/Chicago", true);
-    // Guatemala should observe DST according to the link above!
-    assertDST("America/Guatemala", false); //*
+    assertDST("America/Guatemala", true);
     // China should not observe DST
     assertDST("Asia/Chongqing", false);
     assertDST("Asia/Shanghai", false);
@@ -114,13 +114,56 @@ public class TimeZoneConverterTest extends TestCase {
     assertDST("Etc/GMT+3", false);
     assertDST("Pacific/Port_Moresby", false);
     assertDST("Australia/Sydney", true);
-    assertDST("UTC", false);
+    assertDST("Australia/Brisbane", false);
+    assertDST("Australia/Darwin", false);
+    assertDST("Australia/Hobart", true);
+    assertDST("Australia/Melbourne", true);
+    assertDST("Australia/Adelaide", true);
+  }
+
+  public void testEquality() {
+    TimeZone tz1 = TimeZoneConverter.toTimeZone(
+        DateTimeZone.forID("America/Los_Angeles"));
+    TimeZone tz2 = TimeZoneConverter.toTimeZone(
+        DateTimeZone.forID("America/Los_Angeles"));
+    checkEqualsAndHashCodeMethods(tz1, tz2, true);
+
+    // Try two timezones with the same offsets but different names
+    tz1 = TimeZoneConverter.toTimeZone(
+        DateTimeZone.forID("America/Los_Angeles"));
+    tz2 = TimeZoneConverter.toTimeZone(
+        DateTimeZone.forID("US/Pacific"));
+    checkEqualsAndHashCodeMethods(tz1, tz2, true);
+
+    // Try two timezones that should be different
+    tz1 = TimeZoneConverter.toTimeZone(
+        DateTimeZone.forID("America/Los_Angeles"));
+    tz2 = TimeZoneConverter.toTimeZone(
+        DateTimeZone.forID("America/Chicago"));
+    checkEqualsAndHashCodeMethods(tz1, tz2, false);
+
+    // Try two timezones that are similar but not the same (first has
+    // dst, second does not)
+    tz1 = TimeZoneConverter.toTimeZone(
+        DateTimeZone.forID("America/Los_Angeles"));
+    tz2 = TimeZoneConverter.toTimeZone(
+        DateTimeZone.forID("Etc/GMT+8"));
+    checkEqualsAndHashCodeMethods(tz1, tz2, false);
+
+    // Some more cases
+    tz1 = TimeZoneConverter.toTimeZone(
+        DateTimeZone.forID("UTC"));
+    tz2 = TimeZoneConverter.toTimeZone(
+        DateTimeZone.forID("Etc/GMT+8"));
+    checkEqualsAndHashCodeMethods(tz1, tz2, false);
   }
 
   private static void assertDST(String tzid, boolean expectedHasDST) {
     TimeZone tz = TimeZoneConverter.toTimeZone(DateTimeZone.forID(tzid));
     assertEquals(tzid, tz.getID());
-    assertEquals(tzid + " has DST?: " + expectedHasDST,
+    assertEquals(tzid + " has DST at "
+                 + new Date(DateTimeZone.forID(tzid).nextTransition(1L))
+                 + "?: " + expectedHasDST,
                  expectedHasDST, tz.useDaylightTime());
     assertEquals(tzid + " has DST?: " + expectedHasDST,
                  expectedHasDST ?
@@ -159,5 +202,15 @@ public class TimeZoneConverterTest extends TestCase {
                      c.get(Calendar.DAY_OF_MONTH),
                      c.get(Calendar.DAY_OF_WEEK),
                      (int) (offset % MILLIS_PER_DAY)));
+  }
+
+  private static void checkEqualsAndHashCodeMethods(
+      TimeZone tz1, TimeZone tz2, boolean equal) {
+    if (equal) {
+      assertEquals(tz1, tz2);
+      assertEquals(tz1 + " == " + tz2, tz1.hashCode(), tz2.hashCode());
+    } else {
+      assertTrue(tz1 + " != " + tz2, !tz1.equals((Object) tz2));
+    }
   }
 }

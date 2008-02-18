@@ -32,23 +32,19 @@ import java.util.regex.Pattern;
 class IcalSchema {
 
   /** rules for decoding parameter values */
-  private Map<String, ParamRule> paramRules =
-    new HashMap<String, ParamRule>();
+  private final Map<String, ParamRule> paramRules;
 
   /** rules for decoding parts of the content body */
-  private Map<String, ContentRule> contentRules =
-    new HashMap<String, ContentRule>();
+  private final Map<String, ContentRule> contentRules;
 
   /** rules for breaking the content body or parameters into parts */
-  private Map<String, ObjectRule> objectRules =
-    new HashMap<String, ObjectRule>();
+  private final Map<String, ObjectRule> objectRules;
 
   /** rules for parsing value types */
-  private Map<String, XformRule> xformRules =
-    new HashMap<String, XformRule>();
+  private final Map<String, XformRule> xformRules;
 
   /** list of productions that we're processing for debugging. */
-  private List<String> ruleStack = new ArrayList<String>();
+  private final List<String> ruleStack = new ArrayList<String>();
 
   private static final Pattern EXTENSION_PARAM_NAME_RE =
       Pattern.compile("^X-[A-Z0-9\\-]+$", Pattern.CASE_INSENSITIVE);
@@ -57,10 +53,10 @@ class IcalSchema {
              Map<String, ContentRule> contentRules,
              Map<String, ObjectRule> objectRules,
              Map<String, XformRule> xformRules) {
-    this.paramRules.putAll(paramRules);
-    this.contentRules.putAll(contentRules);
-    this.objectRules.putAll(objectRules);
-    this.xformRules.putAll(xformRules);
+    this.paramRules = paramRules;
+    this.contentRules = contentRules;
+    this.objectRules = objectRules;
+    this.xformRules = xformRules;
   }
 
   /////////////////////////////////

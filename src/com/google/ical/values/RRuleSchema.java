@@ -17,6 +17,7 @@ package com.google.ical.values;
 import com.google.ical.util.TimeUtils;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -45,34 +46,31 @@ class RRuleSchema extends IcalSchema{
   // ICAL Object Schema
   /////////////////////////////////
 
-  private static RRuleSchema instance;
   static RRuleSchema instance() {
-    if (null == instance) {
-      instance = new RRuleSchema();
-    }
-    return instance;
+    return new RRuleSchema();
   }
 
   private RRuleSchema() {
     super(PARAM_RULES, CONTENT_RULES, OBJECT_RULES, XFORM_RULES);
   }
 
-  private static Map<String, ParamRule> PARAM_RULES =
-    new HashMap<String, ParamRule>();
+  private static final Map<String, ParamRule> PARAM_RULES;
 
-  private static Map<String, ContentRule> CONTENT_RULES =
-    new HashMap<String, ContentRule>();
+  private static final Map<String, ContentRule> CONTENT_RULES;
 
-  private static Map<String, ObjectRule> OBJECT_RULES =
-    new HashMap<String, ObjectRule>();
+  private static final Map<String, ObjectRule> OBJECT_RULES;
 
-  private static Map<String, XformRule> XFORM_RULES =
-    new HashMap<String, XformRule>();
+  private static final Map<String, XformRule> XFORM_RULES;
 
   static {
+    Map<String, ParamRule> paramRules = new HashMap<String, ParamRule>();
+    Map<String, ContentRule> contentRules = new HashMap<String, ContentRule>();
+    Map<String, ObjectRule> objectRules = new HashMap<String, ObjectRule>();
+    Map<String, XformRule> xformRules = new HashMap<String, XformRule>();
+
     // rrule      = "RRULE" rrulparam ":" recur CRLF
     // exrule     = "EXRULE" exrparam ":" recur CRLF
-    OBJECT_RULES.put("RRULE", new ObjectRule() {
+    objectRules.put("RRULE", new ObjectRule() {
         public void apply(
             IcalSchema schema, Map<String, String> params, String content,
             IcalObject target)
@@ -81,7 +79,7 @@ class RRuleSchema extends IcalSchema{
           schema.applyContentSchema("recur", content, target);
         }
       });
-    OBJECT_RULES.put("EXRULE", new ObjectRule() {
+    objectRules.put("EXRULE", new ObjectRule() {
         public void apply(
             IcalSchema schema, Map<String, String> params, String content,
             IcalObject target)
@@ -100,8 +98,8 @@ class RRuleSchema extends IcalSchema{
           schema.badParam(name, value);
         }
       };
-    PARAM_RULES.put("rrulparam", xparamsOnly);
-    PARAM_RULES.put("exrparam", xparamsOnly);
+    paramRules.put("rrulparam", xparamsOnly);
+    paramRules.put("exrparam", xparamsOnly);
 
     /*
      * recur      = "FREQ"=freq *(
@@ -130,7 +128,7 @@ class RRuleSchema extends IcalSchema{
      *            ( ";" x-name "=" text )
      *            )
      */
-    CONTENT_RULES.put("recur", new ContentRule() {
+    contentRules.put("recur", new ContentRule() {
         public void apply(IcalSchema schema, String content, IcalObject target)
             throws ParseException {
           String[] parts = SEMI.split(content);
@@ -161,7 +159,7 @@ class RRuleSchema extends IcalSchema{
       });
 
     // exdate     = "EXDATE" exdtparam ":" exdtval *("," exdtval) CRLF
-    OBJECT_RULES.put("EXDATE", new ObjectRule() {
+    objectRules.put("EXDATE", new ObjectRule() {
         public void apply(
             IcalSchema schema, Map<String, String> params, String content,
             IcalObject target)
@@ -174,7 +172,7 @@ class RRuleSchema extends IcalSchema{
       });
 
     // "FREQ"=freq *(
-    CONTENT_RULES.put("FREQ", new ContentRule() {
+    contentRules.put("FREQ", new ContentRule() {
         public void apply(IcalSchema schema, String value, IcalObject target)
             throws ParseException {
           ((RRule) target).setFreq(
@@ -183,7 +181,7 @@ class RRuleSchema extends IcalSchema{
       });
 
     //  ( ";" "UNTIL" "=" enddate ) /
-    CONTENT_RULES.put("UNTIL", new ContentRule() {
+    contentRules.put("UNTIL", new ContentRule() {
         public void apply(IcalSchema schema, String value, IcalObject target)
             throws ParseException {
           ((RRule) target).setUntil(
@@ -192,7 +190,7 @@ class RRuleSchema extends IcalSchema{
       });
 
     //  ( ";" "COUNT" "=" 1*DIGIT ) /
-    CONTENT_RULES.put("COUNT", new ContentRule() {
+    contentRules.put("COUNT", new ContentRule() {
         public void apply(IcalSchema schema, String value, IcalObject target)
             throws ParseException {
           ((RRule) target).setCount(Integer.parseInt(value));
@@ -200,7 +198,7 @@ class RRuleSchema extends IcalSchema{
       });
 
     //  ( ";" "INTERVAL" "=" 1*DIGIT )          /
-    CONTENT_RULES.put("INTERVAL", new ContentRule() {
+    contentRules.put("INTERVAL", new ContentRule() {
         public void apply(IcalSchema schema, String value, IcalObject target)
             throws ParseException {
           ((RRule) target).setInterval(Integer.parseInt(value));
@@ -208,7 +206,7 @@ class RRuleSchema extends IcalSchema{
       });
 
     //  ( ";" "BYSECOND" "=" byseclist )        /
-    CONTENT_RULES.put("BYSECOND", new ContentRule() {
+    contentRules.put("BYSECOND", new ContentRule() {
         public void apply(IcalSchema schema, String value, IcalObject target)
             throws ParseException {
           ((RRule) target).setBySecond(
@@ -217,7 +215,7 @@ class RRuleSchema extends IcalSchema{
       });
 
     //  ( ";" "BYMINUTE" "=" byminlist )        /
-    CONTENT_RULES.put("BYMINUTE", new ContentRule() {
+    contentRules.put("BYMINUTE", new ContentRule() {
         public void apply(IcalSchema schema, String value, IcalObject target)
             throws ParseException {
           ((RRule) target).setByMinute(
@@ -226,7 +224,7 @@ class RRuleSchema extends IcalSchema{
       });
 
     //  ( ";" "BYHOUR" "=" byhrlist )           /
-    CONTENT_RULES.put("BYHOUR", new ContentRule() {
+    contentRules.put("BYHOUR", new ContentRule() {
         public void apply(IcalSchema schema, String value, IcalObject target)
             throws ParseException {
           ((RRule) target).setByHour(
@@ -235,7 +233,7 @@ class RRuleSchema extends IcalSchema{
       });
 
     //  ( ";" "BYDAY" "=" bywdaylist )          /
-    CONTENT_RULES.put("BYDAY", new ContentRule() {
+    contentRules.put("BYDAY", new ContentRule() {
         public void apply(IcalSchema schema, String value, IcalObject target)
             throws ParseException {
           ((RRule) target).setByDay(
@@ -244,7 +242,7 @@ class RRuleSchema extends IcalSchema{
       });
 
     //  ( ";" "BYMONTHDAY" "=" bymodaylist )    /
-    CONTENT_RULES.put("BYMONTHDAY", new ContentRule() {
+    contentRules.put("BYMONTHDAY", new ContentRule() {
         public void apply(IcalSchema schema, String value, IcalObject target)
             throws ParseException {
           ((RRule) target).setByMonthDay(
@@ -253,7 +251,7 @@ class RRuleSchema extends IcalSchema{
       });
 
     //  ( ";" "BYYEARDAY" "=" byyrdaylist )     /
-    CONTENT_RULES.put("BYYEARDAY", new ContentRule() {
+    contentRules.put("BYYEARDAY", new ContentRule() {
         public void apply(IcalSchema schema, String value, IcalObject target)
             throws ParseException {
           ((RRule) target).setByYearDay(
@@ -262,7 +260,7 @@ class RRuleSchema extends IcalSchema{
       });
 
     //  ( ";" "BYWEEKNO" "=" bywknolist )       /
-    CONTENT_RULES.put("BYWEEKNO", new ContentRule() {
+    contentRules.put("BYWEEKNO", new ContentRule() {
         public void apply(IcalSchema schema, String value, IcalObject target)
             throws ParseException {
           ((RRule) target).setByWeekNo(
@@ -271,7 +269,7 @@ class RRuleSchema extends IcalSchema{
       });
 
     //  ( ";" "BYMONTH" "=" bymolist )          /
-    CONTENT_RULES.put("BYMONTH", new ContentRule() {
+    contentRules.put("BYMONTH", new ContentRule() {
         public void apply(IcalSchema schema, String value, IcalObject target)
             throws ParseException {
           ((RRule) target).setByMonth(
@@ -280,7 +278,7 @@ class RRuleSchema extends IcalSchema{
       });
 
     //  ( ";" "BYSETPOS" "=" bysplist )         /
-    CONTENT_RULES.put("BYSETPOS", new ContentRule() {
+    contentRules.put("BYSETPOS", new ContentRule() {
         public void apply(IcalSchema schema, String value, IcalObject target)
             throws ParseException {
           ((RRule) target).setBySetPos(
@@ -289,7 +287,7 @@ class RRuleSchema extends IcalSchema{
       });
 
     //  ( ";" "WKST" "=" weekday )              /
-    CONTENT_RULES.put("WKST", new ContentRule() {
+    contentRules.put("WKST", new ContentRule() {
         public void apply(IcalSchema schema, String value, IcalObject target)
             throws ParseException {
           ((RRule) target).setWkSt(
@@ -299,7 +297,7 @@ class RRuleSchema extends IcalSchema{
 
     // freq       = "SECONDLY" / "MINUTELY" / "HOURLY" / "DAILY"
     //            / "WEEKLY" / "MONTHLY" / "YEARLY"
-    XFORM_RULES.put("freq", new XformRule() {
+    xformRules.put("freq", new XformRule() {
         public Frequency apply(IcalSchema schema, String value)
             throws ParseException {
           return Frequency.valueOf(value);
@@ -308,7 +306,7 @@ class RRuleSchema extends IcalSchema{
 
     // enddate    = date
     // enddate    =/ date-time            ;An UTC value
-    XFORM_RULES.put("enddate", new XformRule() {
+    xformRules.put("enddate", new XformRule() {
         public DateValue apply(IcalSchema schema, String value)
             throws ParseException {
           return IcalParseUtil.parseDateValue(value.toUpperCase());
@@ -317,7 +315,7 @@ class RRuleSchema extends IcalSchema{
 
     // byseclist  = seconds / ( seconds *("," seconds) )
     // seconds    = 1DIGIT / 2DIGIT       ;0 to 59
-    XFORM_RULES.put("byseclist", new XformRule() {
+    xformRules.put("byseclist", new XformRule() {
         public int[] apply(IcalSchema schema, String value)
             throws ParseException {
           return parseUnsignedIntList(value, 0, 59, schema);
@@ -326,7 +324,7 @@ class RRuleSchema extends IcalSchema{
 
     // byminlist  = minutes / ( minutes *("," minutes) )
     // minutes    = 1DIGIT / 2DIGIT       ;0 to 59
-    XFORM_RULES.put("byminlist", new XformRule() {
+    xformRules.put("byminlist", new XformRule() {
         public int[] apply(IcalSchema schema, String value)
             throws ParseException {
           return parseUnsignedIntList(value, 0, 59, schema);
@@ -335,7 +333,7 @@ class RRuleSchema extends IcalSchema{
 
     // byhrlist   = hour / ( hour *("," hour) )
     // hour       = 1DIGIT / 2DIGIT       ;0 to 23
-    XFORM_RULES.put("byhrlist", new XformRule() {
+    xformRules.put("byhrlist", new XformRule() {
         public int[] apply(IcalSchema schema, String value)
             throws ParseException {
           return parseUnsignedIntList(value, 0, 23, schema);
@@ -351,7 +349,7 @@ class RRuleSchema extends IcalSchema{
     // weekday    = "SU" / "MO" / "TU" / "WE" / "TH" / "FR" / "SA"
     // ;Corresponding to SUNDAY, MONDAY, TUESDAY, WEDNESDAY, THURSDAY,
     // ;FRIDAY, SATURDAY and SUNDAY days of the week.
-    XFORM_RULES.put("bywdaylist", new XformRule() {
+    xformRules.put("bywdaylist", new XformRule() {
         public List<WeekdayNum> apply(IcalSchema schema, String value)
             throws ParseException {
           String[] parts = COMMA.split(value);
@@ -375,7 +373,7 @@ class RRuleSchema extends IcalSchema{
         }
       });
 
-    XFORM_RULES.put("weekday", new XformRule() {
+    xformRules.put("weekday", new XformRule() {
         public Weekday apply(IcalSchema schema, String value)
             throws ParseException {
           return Weekday.valueOf(value.toUpperCase());
@@ -385,7 +383,7 @@ class RRuleSchema extends IcalSchema{
     // bymodaylist = monthdaynum / ( monthdaynum *("," monthdaynum) )
     // monthdaynum = ([plus] ordmoday) / (minus ordmoday)
     // ordmoday   = 1DIGIT / 2DIGIT       ;1 to 31
-    XFORM_RULES.put("bymodaylist", new XformRule() {
+    xformRules.put("bymodaylist", new XformRule() {
         public int[] apply(IcalSchema schema, String value)
             throws ParseException {
           return parseIntList(value, 1, 31, schema);
@@ -395,7 +393,7 @@ class RRuleSchema extends IcalSchema{
     // byyrdaylist = yeardaynum / ( yeardaynum *("," yeardaynum) )
     // yeardaynum = ([plus] ordyrday) / (minus ordyrday)
     // ordyrday   = 1DIGIT / 2DIGIT / 3DIGIT      ;1 to 366
-    XFORM_RULES.put("byyrdaylist", new XformRule() {
+    xformRules.put("byyrdaylist", new XformRule() {
         public int[] apply(IcalSchema schema, String value)
             throws ParseException {
           return parseIntList(value, 1, 366, schema);
@@ -404,7 +402,7 @@ class RRuleSchema extends IcalSchema{
 
     // bywknolist = weeknum / ( weeknum *("," weeknum) )
     // weeknum    = ([plus] ordwk) / (minus ordwk)
-    XFORM_RULES.put("bywknolist", new XformRule() {
+    xformRules.put("bywknolist", new XformRule() {
         public int[] apply(IcalSchema schema, String value)
             throws ParseException {
           return parseIntList(value, 1, 53, schema);
@@ -413,7 +411,7 @@ class RRuleSchema extends IcalSchema{
 
     // bymolist   = monthnum / ( monthnum *("," monthnum) )
     // monthnum   = 1DIGIT / 2DIGIT       ;1 to 12
-    XFORM_RULES.put("bymolist", new XformRule() {
+    xformRules.put("bymolist", new XformRule() {
         public int[] apply(IcalSchema schema, String value)
             throws ParseException {
           return parseIntList(value, 1, 12, schema);
@@ -422,7 +420,7 @@ class RRuleSchema extends IcalSchema{
 
     // bysplist   = setposday / ( setposday *("," setposday) )
     // setposday  = yeardaynum
-    XFORM_RULES.put("bysplist", new XformRule() {
+    xformRules.put("bysplist", new XformRule() {
         public int[] apply(IcalSchema schema, String value)
             throws ParseException {
           return parseIntList(value, 1, 366, schema);
@@ -431,7 +429,7 @@ class RRuleSchema extends IcalSchema{
 
 
         // rdate      = "RDATE" rdtparam ":" rdtval *("," rdtval) CRLF
-    OBJECT_RULES.put("RDATE", new ObjectRule() {
+    objectRules.put("RDATE", new ObjectRule() {
         public void apply(
             IcalSchema schema, Map<String, String> params, String content,
             IcalObject target)
@@ -443,7 +441,7 @@ class RRuleSchema extends IcalSchema{
     // exdate     = "EXDATE" exdtparam ":" exdtval *("," exdtval) CRLF
     // exdtparam  = rdtparam
     // exdtval    = rdtval
-    OBJECT_RULES.put("EXDATE", new ObjectRule() {
+    objectRules.put("EXDATE", new ObjectRule() {
         public void apply(
             IcalSchema schema, Map<String, String> params, String content,
             IcalObject target)
@@ -471,7 +469,7 @@ class RRuleSchema extends IcalSchema{
 
     // tzidparam  = "TZID" "=" [tzidprefix] paramtext CRLF
     // tzidprefix = "/"
-    PARAM_RULES.put(
+    paramRules.put(
         "rdtparam",
         new ParamRule() {
           public void apply(
@@ -500,11 +498,11 @@ class RRuleSchema extends IcalSchema{
             }
           }
         });
-    PARAM_RULES.put("rrulparam", xparamsOnly);
-    PARAM_RULES.put("exrparam", xparamsOnly);
+    paramRules.put("rrulparam", xparamsOnly);
+    paramRules.put("exrparam", xparamsOnly);
 
     // rdtval     = date-time / date / period ;Value MUST match value type
-    CONTENT_RULES.put("rdtval", new ContentRule() {
+    contentRules.put("rdtval", new ContentRule() {
         public void apply(IcalSchema schema, String content, IcalObject target)
             throws ParseException {
           RDateList rdates = (RDateList) target;
@@ -519,6 +517,10 @@ class RRuleSchema extends IcalSchema{
         }
       });
 
+    PARAM_RULES = Collections.unmodifiableMap(paramRules);
+    CONTENT_RULES = Collections.unmodifiableMap(contentRules);
+    OBJECT_RULES = Collections.unmodifiableMap(objectRules);
+    XFORM_RULES = Collections.unmodifiableMap(xformRules);
   }
 
 

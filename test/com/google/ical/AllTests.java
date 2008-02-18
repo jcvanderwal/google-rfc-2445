@@ -51,6 +51,7 @@ public class AllTests extends TestSuite {
     this.addTestSuite(com.google.ical.values.IcalParseUtilTest.class);
     this.addTestSuite(com.google.ical.values.PeriodValueImplTest.class);
     this.addTestSuite(com.google.ical.values.RDateListTest.class);
+    this.addTestSuite(com.google.ical.values.RRuleTest.class);
     this.addTestSuite(com.google.ical.values.VcalRewriterTest.class);
   }
 

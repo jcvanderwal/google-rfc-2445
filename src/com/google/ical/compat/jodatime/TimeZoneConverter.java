@@ -19,6 +19,8 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.SimpleTimeZone;
 import java.util.TimeZone;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
@@ -42,6 +44,18 @@ final class TimeZoneConverter {
   static final int MILLISECONDS_PER_MINUTE = 60 * MILLISECONDS_PER_SECOND;
   static final int MILLISECONDS_PER_HOUR = 60 * MILLISECONDS_PER_MINUTE;
 
+  private static final Pattern HOUR_MINUTE = Pattern.compile(
+      "^[+-]?[0-9]{1,2}:[0-9]{2}(:[0-9]{2})?$");
+
+  private static final TimeZone UTC = new SimpleTimeZone(0, "UTC");
+
+  private static final long MILLIS_SINCE_1_JAN_2000_UTC;
+  static {
+    GregorianCalendar c = new GregorianCalendar(UTC);
+    c.set(2000, 0, 1, 0, 0, 0);
+    MILLIS_SINCE_1_JAN_2000_UTC = c.getTimeInMillis();
+  }
+  
   /**
    * return a <code>java.util.Timezone</code> object that delegates to
    * the given Joda <code>DateTimeZone</code>.
@@ -55,7 +69,7 @@ final class TimeZoneConverter {
         }
         @Override
         public boolean useDaylightTime() {
-          long firstTransition = 0L;
+          long firstTransition = MILLIS_SINCE_1_JAN_2000_UTC;
           return firstTransition != dtz.nextTransition(firstTransition);
         }
         @Override
@@ -133,6 +147,20 @@ final class TimeZoneConverter {
           return dtz.toString();
         }
 
+        @Override
+        public boolean equals(Object that) {
+          if (!(that instanceof TimeZone)) {
+            return false;
+          }
+          TimeZone thatTz = (TimeZone) that;
+          return getID().equals(thatTz.getID()) && hasSameRules(thatTz);
+        }
+
+        @Override
+        public int hashCode() {
+          return getID().hashCode();
+        }
+
         private static final long serialVersionUID = 58752546800455L;
       };
     // Now fix the tzids.  DateTimeZone has a bad habit of returning
@@ -147,20 +175,14 @@ final class TimeZoneConverter {
    * Otherwise return it unchanged.
    */
   static String cleanUpTzid(String tzid) {
-    if ("".equals(tzid)) { return "GMT"; }
-    switch (tzid.charAt(0)) {
-      case '+': case '-':
-        return  "GMT" + tzid;
-      case '0': case '1': case '2': case '3': case '4':
-      case '5': case '6': case '7': case '8': case '9':
-        return "GMT+" + tzid;
-      default:
-        return tzid;
-    }
+    Matcher m = HOUR_MINUTE.matcher(tzid);
+    return m.matches() ?  // of the form [+-]hh:mm
+        "GMT" +
+        (tzid.startsWith("-") || tzid.startsWith("+") ? "" :  "+") + tzid :
+        tzid;
   }
 
   private TimeZoneConverter() {
     // uninstantiable
   }
-
 }
