@@ -18,11 +18,24 @@
   <!--== inputs ==-->
   <property name="src" location="src"/>
   <property name="testsrc" location="test"/>
+  <property name="third_party" location="third_party"/>
   <!--== outputs ==-->
   <property name="lib" location="lib"/>
   <property name="testlib" location="testlib"/>
   <property name="docs" location="docs"/>
   <property name="jars" location="jars"/>
+
+  <path id="build.class.path">
+    <pathelement location="${lib}"/>
+    <pathelement path="${third_party}/joda-time/joda-time.jar"/>
+  </path>
+
+  <path id="test.class.path">
+    <pathelement location="${lib}"/>
+    <pathelement location="${testlib}"/>
+    <pathelement path="${third_party}/joda-time/joda-time.jar"/>
+    <pathelement path="${third_party}/junit/junit.jar"/>
+  </path>
 
   <!--== rules ==-->
   <target name="default" depends="rfc2445,tests,docs"/>
@@ -40,7 +53,7 @@
 
     <javac srcdir="${src}" destdir="${lib}" debug="true"
      target="1.5" source="1.5">
-      <!-- compilerarg line="-Xlint:unchecked"/ -->
+      <classpath refid="build.class.path"/>
     </javac>
     <jar jarfile="${jars}/rfc2445.jar" basedir="${lib}"/>
   </target>
@@ -61,28 +74,28 @@
 
   <target name="tests" depends="rfc2445">
     <mkdir dir="${testlib}"/>
-    <javac srcdir="${testsrc}" destdir="${testlib}" classpath="${lib}"
-     debug="true"/>
+    <javac srcdir="${testsrc}" destdir="${testlib}" debug="true">
+      <classpath refid="build.class.path"/>
+    </javac>
   </target>
 
   <target name="docs">
     <mkdir dir="${docs}"/>
     <javadoc sourcepath="${src}" destdir="${docs}" access="protected"
      author="true"
-     bottom="Copyright (C) 2006 Google Inc.&lt;br&gt;
+     bottom="Copyright (C) 2008 Google Inc.&lt;br&gt;
              &lt;a href=http://www.apache.org/licenses/LICENSE-2.0&gt;
              Licensed under the Apache License, Version 2.0&lt;/a&gt;"
      overview="${src}/overview.html"
      docencoding="utf-8"
-     packagenames="*"/>
+     packagenames="*">
+      <classpath refid="build.class.path"/>
+    </javadoc>
   </target>
 
   <target name="runtests" depends="tests">
     <junit printsummary="yes">
-      <classpath>
-        <pathelement path="${lib}"/>
-        <pathelement path="${testlib}"/>
-      </classpath>
+      <classpath refid="test.class.path"/>
 
       <formatter type="plain" usefile="false"/>
 
