@@ -75,7 +75,7 @@
   <target name="tests" depends="rfc2445">
     <mkdir dir="${testlib}"/>
     <javac srcdir="${testsrc}" destdir="${testlib}" debug="true">
-      <classpath refid="build.class.path"/>
+      <classpath refid="test.class.path"/>
     </javac>
   </target>
 
