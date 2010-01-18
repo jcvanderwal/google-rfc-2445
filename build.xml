@@ -24,6 +24,7 @@
   <property name="testlib" location="testlib"/>
   <property name="docs" location="docs"/>
   <property name="jars" location="jars"/>
+  <property name="reports" location="reports"/>
 
   <path id="build.class.path">
     <pathelement location="${lib}"/>
@@ -94,13 +95,21 @@
   </target>
 
   <target name="runtests" depends="tests">
+    <mkdir dir="${reports}/test"/>
+
     <junit printsummary="yes">
       <classpath refid="test.class.path"/>
-
-      <formatter type="plain" usefile="false"/>
-
-      <test name="com.google.ical.AllTests"/>
+      <formatter type="xml" usefile="true"/>
+      <batchtest todir="${reports}/test" unless="emma.enabled">
+        <fileset dir="${testsrc}">
+          <include name="**/*Test.java"/>
+        </fileset>
+      </batchtest>
     </junit>
+    <junitreport todir="${reports}/test">
+      <fileset dir="${reports}/test" includes="TEST-*.xml"/>
+      <report format="frames" todir="${reports}/test"/>
+    </junitreport>
   </target>
 
 </project>

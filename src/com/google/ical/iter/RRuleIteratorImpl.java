@@ -159,15 +159,20 @@ final class RRuleIteratorImpl implements RecurrenceIterator {
   public void remove() { throw new UnsupportedOperationException(); }
 
   /**
-   * skip over all instances of the recurrence before the given date, so that
+   * Skip all instances of the recurrence before the given date, so that
    * the next call to {@link #next} will return a date on or after the given
    * date, assuming the recurrence includes such a date.
    */
   public void advanceTo(DateValue dateUtc) {
-    DateValue dateLocal = TimeUtils.fromUtc(dateUtc, tzid_);
-    if (dateLocal.compareTo(this.builder_.toDate()) < 0) {
+    // Don't throw away a future pending date since the iterators will not
+    // generate it again.
+    if (this.pendingUtc_ !=  null && dateUtc.compareTo(this.pendingUtc_) <= 0) {
       return;
     }
+
+    DateValue dateLocal = TimeUtils.fromUtc(dateUtc, tzid_);
+    // Short-circuit if we're already past dateUtc.
+    if (dateLocal.compareTo(this.builder_.toDate()) <= 0) { return; }
     this.pendingUtc_ = null;
 
     try {

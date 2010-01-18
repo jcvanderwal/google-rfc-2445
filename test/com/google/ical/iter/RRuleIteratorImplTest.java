@@ -72,13 +72,17 @@ public class RRuleIteratorImplTest extends TestCase {
       ri.advanceTo(advanceTo);
     }
     StringBuilder sb = new StringBuilder();
-    int k = 0;
-    while (ri.hasNext() && --limit >= 0) {
+    int k = 0, n = limit;
+    while (ri.hasNext() && --n >= 0) {
       if (k++ != 0) { sb.append(','); }
       sb.append(ri.next());
     }
-    if (limit < 0) { sb.append(",..."); }
+    if (n < 0) { sb.append(",..."); }
     assertEquals(golden, sb.toString());
+
+    if (null == advanceTo) {
+      runRecurrenceIteratorTest(rruleText, dtStart, limit, golden, dtStart, tz);
+    }
   }
 
   public void testFrequencyLimits() throws Exception {
@@ -897,6 +901,17 @@ public class RRuleIteratorImplTest extends TestCase {
         IcalParseUtil.parseDateValue("20000101"), 10,
         "",
         IcalParseUtil.parseDateValue("25000101"));
+
+    // advancing right to the start
+    runRecurrenceIteratorTest(
+        "RRULE:FREQ=YEARLY;INTERVAL=1;BYMONTHDAY=10;BYMONTH=1;COUNT=3",
+        IcalParseUtil.parseDateValue("20100110T140000"), 3,
+        "20100110T140000,20110110T140000,20120110T140000");
+    runRecurrenceIteratorTest(
+        "RRULE:FREQ=YEARLY;INTERVAL=1;BYMONTHDAY=10;BYMONTH=1;COUNT=3",
+        IcalParseUtil.parseDateValue("20100110T140000"), 3,
+        "20100110T140000,20110110T140000,20120110T140000",
+        IcalParseUtil.parseDateValue("20100110T140000"));
 
     // TODO(msamuel): check advancement of more examples
   }
