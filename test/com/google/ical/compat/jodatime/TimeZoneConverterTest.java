@@ -14,15 +14,12 @@
 
 package com.google.ical.compat.jodatime;
 
-import com.google.ical.util.TimeUtils;
-import com.google.ical.values.DateValue;
 import java.util.Date;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.Random;
 import java.util.TimeZone;
 import junit.framework.TestCase;
-import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 
 /**
@@ -210,7 +207,7 @@ public class TimeZoneConverterTest extends TestCase {
       assertEquals(tz1, tz2);
       assertEquals(tz1 + " == " + tz2, tz1.hashCode(), tz2.hashCode());
     } else {
-      assertTrue(tz1 + " != " + tz2, !tz1.equals((Object) tz2));
+      assertTrue(tz1 + " != " + tz2, !tz1.equals(tz2));
     }
   }
 }

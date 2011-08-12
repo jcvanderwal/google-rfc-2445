@@ -234,6 +234,7 @@ class RRuleSchema extends IcalSchema{
 
     //  ( ";" "BYDAY" "=" bywdaylist )          /
     contentRules.put("BYDAY", new ContentRule() {
+        @SuppressWarnings("unchecked")
         public void apply(IcalSchema schema, String value, IcalObject target)
             throws ParseException {
           ((RRule) target).setByDay(

@@ -16,7 +16,6 @@ package com.google.ical.iter;
 
 import com.google.ical.values.RDateList;
 import com.google.ical.values.DateValue;
-import com.google.ical.util.TimeUtils;
 import java.util.TimeZone;
 
 import junit.framework.TestCase;

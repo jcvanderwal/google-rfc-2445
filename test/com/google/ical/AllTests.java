@@ -14,12 +14,6 @@
 
 package com.google.ical;
 
-import com.google.ical.compat.javautil.*;
-import com.google.ical.compat.jodatime.*;
-import com.google.ical.iter.*;
-import com.google.ical.util.*;
-import com.google.ical.values.*;
-
 import junit.framework.TestSuite;
 
 /**

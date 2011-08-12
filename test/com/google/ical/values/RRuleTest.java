@@ -34,16 +34,18 @@ public class RRuleTest extends TestCase {
 
     final List<Throwable> errorList
         = Collections.synchronizedList(new ArrayList<Throwable>());
-    
+
     Runnable r = new Runnable() {
         public void run() {
-          synchronized (errorList) { ; }
+          RRule _ = null;
           for (int i = nRuns; --i >= 0;) {
             try {
-              new RRule("RRULE:FREQ=MONTHLY;INTERVAL=2;BYDAY=FR;BYSETPOS=-1");
+              _ = new RRule(
+                "RRULE:FREQ=MONTHLY;INTERVAL=2;BYDAY=FR;BYSETPOS=-1");
             } catch (Error err) {
               throw err;
             } catch (Throwable th) {
+              System.err.println("At run " + i + ", " + _);
               errorList.add(th);
             }
           }
@@ -53,7 +55,7 @@ public class RRuleTest extends TestCase {
     // Run once to make sure all static data initialized is shared by child
     // threads.
     r.run();
-    
+
     Thread[] threads = new Thread[nThreads];
     for (int i = 0; i < threads.length; ++i) {
       (threads[i] = new Thread(r)).setDaemon(true);

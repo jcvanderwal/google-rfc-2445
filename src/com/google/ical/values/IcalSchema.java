@@ -16,7 +16,6 @@ package com.google.ical.values;
 
 import java.text.ParseException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
@@ -168,10 +167,11 @@ class IcalSchema {
   /**
    * rule applied to parse an entire content line after its been split into
    * unparsed/unescaped parameters and unescaped content.
-   * @param schema the schema used to provide further rules.
-   * @param params
    */
   public interface ObjectRule {
+    /**
+     * @param schema the schema used to provide further rules.
+     */
     public void apply(IcalSchema schema,
                       Map<String, String> params,
                       String content,

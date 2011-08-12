@@ -14,7 +14,6 @@
 
 package com.google.ical.values;
 
-import com.google.ical.util.TimeUtils;
 import com.google.ical.values.DateTimeValue;
 import com.google.ical.values.DateTimeValueImpl;
 import com.google.ical.values.DateValue;

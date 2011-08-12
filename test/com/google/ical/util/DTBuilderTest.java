@@ -57,7 +57,7 @@ public class DTBuilderTest extends TestCase {
                    new DTBuilder(2006, 1, 2, 12, 30, 0)));
     assertEquals(new DTBuilder(2006, 1, 2).hashCode(),
                  new DTBuilder(2006, 1, 2).hashCode());
-    assertEquals(new DTBuilder(), new DTBuilder(0, 0, 0, 0, 0, 0));
+    assertEquals(new DTBuilder(0, 0, 0), new DTBuilder(0, 0, 0, 0, 0, 0));
   }
 
   public void testToDate() throws Exception {

@@ -31,6 +31,10 @@ final class Conditions {
       public boolean apply(DateValue _) {
         return --count_ >= 0;
       }
+      @Override
+      public String toString() {
+        return "CountCondition:" + count_;
+      }
     };
   }
 
@@ -43,10 +47,15 @@ final class Conditions {
       public boolean apply(DateValue date) {
         return date.compareTo(until) <= 0;
       }
+      @Override
+      public String toString() {
+        return "UntilCondition:" + until;
+      }
     };
   }
 
-  // uninstantiable
-  private Conditions() {}
+  private Conditions() {
+    // uninstantiable
+  }
 
 }

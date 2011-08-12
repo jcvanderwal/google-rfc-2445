@@ -23,4 +23,5 @@ package com.google.ical.values;
  * @author Neal Gafter
  */
 public interface DateTimeValue extends DateValue, TimeValue {
+  // Simple union.
 }

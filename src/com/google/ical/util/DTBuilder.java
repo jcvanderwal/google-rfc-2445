@@ -42,9 +42,6 @@ public class DTBuilder {
   /** zero indexed */
   public int second;
 
-  public DTBuilder() {
-  }
-
   public DTBuilder(int year, int month, int day,
                    int hour, int minute, int second) {
     this.year = year;

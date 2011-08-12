@@ -457,15 +457,17 @@ public class CompoundIteratorImplTest extends TestCase {
   public static void assertEquals(String message, String a, String b) {
     if (null != a ? a.equals(b) : null == b) { return; }
 
-    int prefixLen = commonPrefix(a, b, 0);
-    int suffixLen = commonSuffix(a, b, 0);
-    suffixLen = Math.min(Math.min(a.length(), b.length())
+    if (a != null && b != null) {
+      int prefixLen = commonPrefix(a, b, 0);
+      int suffixLen = commonSuffix(a, b, 0);
+      suffixLen = Math.min(Math.min(a.length(), b.length())
                          - prefixLen, suffixLen);
-    int suffixPos = b.length() - suffixLen;
-    System.err.println("Actual=<<<\n" + b.substring(0, prefixLen)
-                       + "  ==>" + b.substring(prefixLen, suffixPos)
-                       + "<==  " + b.substring(suffixPos)
-                       + "\n>>>");
+      int suffixPos = b.length() - suffixLen;
+      System.err.println("Actual=<<<\n" + b.substring(0, prefixLen)
+                         + "  ==>" + b.substring(prefixLen, suffixPos)
+                         + "<==  " + b.substring(suffixPos)
+                         + "\n>>>");
+    }
     Assert.assertEquals(message, a, b);
   }
 

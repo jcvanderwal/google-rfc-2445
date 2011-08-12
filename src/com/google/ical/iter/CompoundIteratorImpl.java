@@ -140,6 +140,7 @@ final class CompoundIteratorImpl implements RecurrenceIterator {
         reattach(candidate);
         if (0 == nInclusionsRemaining) { return; }
       } while (!queue.isEmpty());
+      if (inclusion == null) { return; }
       long inclusionComparable = inclusion.comparable();
 
       // Check for any following exclusions and for duplicates.

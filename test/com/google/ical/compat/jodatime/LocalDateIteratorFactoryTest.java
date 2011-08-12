@@ -14,8 +14,6 @@
 
 package com.google.ical.compat.jodatime;
 
-import com.google.ical.util.TimeUtils;
-import com.google.ical.values.DateTimeValue;
 import com.google.ical.values.DateTimeValueImpl;
 import com.google.ical.values.DateValue;
 import com.google.ical.values.DateValueImpl;
