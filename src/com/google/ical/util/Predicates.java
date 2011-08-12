@@ -3,21 +3,26 @@
 package com.google.ical.util;
 
 import java.io.Serializable;
+import java.util.Collection;
 
 /**
  * static methods for creating the standard set of {@link Predicate} objects.
  */
 public class Predicates {
 
-  private Predicates() { }
+  private Predicates() {
+    // uninstantiable
+  }
 
   /*
    * For constant Predicates a single instance will suffice; we'll cast it to
    * the right parameterized type on demand.
    */
 
-  private static final Predicate<?> ALWAYS_TRUE = new AlwaysTruePredicate();
-  private static final Predicate<?> ALWAYS_FALSE = new AlwaysFalsePredicate();
+  private static final Predicate<?> ALWAYS_TRUE =
+      new AlwaysTruePredicate<Object>();
+  private static final Predicate<?> ALWAYS_FALSE =
+      new AlwaysFalsePredicate<Object>();
 
   /**
    * Returns a Predicate that always evaluates to true.
@@ -53,7 +58,40 @@ public class Predicates {
    */
   public static <T> Predicate<T> and(Predicate<? super T>... components) {
     assert null != components;
+    components = components.clone();
+    int n = components.length;
+    for (int i = 0; i < n; ++i) {
+      Predicate<? super T> p = components[i];
+      if (p == ALWAYS_FALSE) { return alwaysFalse(); }
+      if (p == ALWAYS_TRUE) {
+        components[i] = components[n - 1];
+        --i; --n;
+      }
+    }
+    if (n == 0) { return alwaysTrue(); }
+    if (n != components.length) {
+      @SuppressWarnings("unchecked")
+      Predicate<? super T>[] newComponents = new Predicate[n];
+      System.arraycopy(newComponents, 0, components, 0, n);
+      components = newComponents;
+    }
     return new AndPredicate<T>(components);
+  }
+
+  /**
+   * Returns a Predicate that evaluates to true iff each of its components
+   * evaluates to true.  The components are evaluated in order, and evaluation
+   * will be "short-circuited" as soon as the answer is determined.  Does not
+   * defensively copy the array passed in, so future changes to it will alter
+   * the behavior of this Predicate.
+   */
+  public static <T> Predicate<T> and(
+      Collection<Predicate<? super T>> components) {
+    int n = components.size();
+    @SuppressWarnings("unchecked")
+    Predicate<? super T>[] arr = new Predicate[n];
+    components.toArray(arr);
+    return and(arr);
   }
 
   /**
@@ -65,6 +103,23 @@ public class Predicates {
    */
   public static <T> Predicate<T> or(Predicate<? super T>... components) {
     assert components != null;
+    components = components.clone();
+    int n = components.length;
+    for (int i = 0; i < n; ++i) {
+      Predicate<? super T> p = components[i];
+      if (p == ALWAYS_TRUE) { return alwaysTrue(); }
+      if (p == ALWAYS_FALSE) {
+        components[i] = components[n - 1];
+        --i; --n;
+      }
+    }
+    if (components.length == 0) { return alwaysFalse(); }
+    if (n != components.length) {
+      @SuppressWarnings("unchecked")
+      Predicate<? super T>[] newComponents = new Predicate[n];
+      System.arraycopy(newComponents, 0, components, 0, n);
+      components = newComponents;
+    }
     return new OrPredicate<T>(components);
   }
 
@@ -75,6 +130,8 @@ public class Predicates {
     public boolean apply(T t) {
       return true;
     }
+    @Override
+    public String toString() { return "true"; }
   }
 
   /** @see Predicates#alwaysFalse */
@@ -84,6 +141,8 @@ public class Predicates {
     public boolean apply(T t) {
       return false;
     }
+    @Override
+    public String toString() { return "false"; }
   }
 
   /** @see Predicates#not */

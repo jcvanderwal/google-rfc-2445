@@ -137,6 +137,14 @@ public class TimeUtils {
     return fixedFromGregorian(dv1) - fixedFromGregorian(dv2);
   }
 
+  public static int daysBetween(
+      int y1, int m1, int d1,
+      int y2, int m2, int d2) {
+    return fixedFromGregorian(y1, m1, d1) - fixedFromGregorian(y2, m2, d2);
+  }
+
+
+
   private static int fixedFromGregorian(DateValue date) {
     return fixedFromGregorian(date.year(), date.month(), date.day());
   }
@@ -306,6 +314,8 @@ public class TimeUtils {
     return tz;
   }
 
-  private TimeUtils() {} // uninstantiable
+  private TimeUtils() {
+    // uninstantiable
+  }
 
 }

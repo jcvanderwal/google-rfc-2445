@@ -17,6 +17,7 @@ package com.google.ical.iter;
 import com.google.ical.values.DateTimeValue;
 import com.google.ical.values.DateTimeValueImpl;
 import com.google.ical.values.DateValue;
+import com.google.ical.values.DateValueImpl;
 import com.google.ical.values.Frequency;
 import com.google.ical.values.IcalObject;
 import com.google.ical.values.RDateList;
@@ -185,23 +186,78 @@ public class RecurrenceIteratorFactory {
     int[] byMinute = rrule.getByMinute();
     int[] bySecond = rrule.getBySecond();
 
-    // Make sure that BYMINUTE, BYHOUR, and BYSECOND rules are respected if they
-    // have exactly one iteration, so not causing frequency to exceed daily.
-    TimeValue startTime = null;
-    if (1 == (byHour.length | byMinute.length | bySecond.length)
-        && dtStart instanceof TimeValue) {
-      TimeValue tv = (TimeValue) dtStart;
-      startTime = new DateTimeValueImpl(
-          0, 0, 0,
-          1 == byHour.length ? byHour[0] : tv.hour(),
-          1 == byMinute.length ? byMinute[0] : tv.minute(),
-          1 == bySecond.length ? bySecond[0] : tv.second());
-    }
-
-
     if (interval <= 0) {  interval = 1; }
+
     if (null == wkst) {
       wkst = Weekday.MO;
+    }
+
+    // Optimize out BYSETPOS where possible.
+    if (bySetPos.length != 0) {
+      switch (freq) {
+        case HOURLY:
+          // ;BYHOUR=3,6,9;BYSETPOS=-1,1
+          //     is equivalent to
+          // ;BYHOUR=3,9
+          if (byHour.length != 0 && byMinute.length <= 1
+              && bySecond.length <= 1) {
+            byHour = filterBySetPos(byHour, bySetPos);
+          }
+          // Handling bySetPos for rules that are more frequent than daily
+          // tends to lead to large amounts of processor being used before other
+          // work limiting features can kick in since there many seconds between
+          // dtStart and where the year limit kicks in.
+          // There are no known use cases for the use of bySetPos with hourly
+          // minutely and secondly rules so we just ignore it.
+          bySetPos = NO_INTS;
+          break;
+        case MINUTELY:
+          // ;BYHOUR=3,6,9;BYSETPOS=-1,1
+          //     is equivalent to
+          // ;BYHOUR=3,9
+          if (byMinute.length != 0 && bySecond.length <= 1) {
+            byMinute = filterBySetPos(byMinute, bySetPos);
+          }
+          // See bySetPos handling comment above.
+          bySetPos = NO_INTS;
+          break;
+        case SECONDLY:
+          // ;BYHOUR=3,6,9;BYSETPOS=-1,1
+          //     is equivalent to
+          // ;BYHOUR=3,9
+          if (bySecond.length != 0) {
+            bySecond = filterBySetPos(bySecond, bySetPos);
+          }
+          // See bySetPos handling comment above.
+          bySetPos = NO_INTS;
+          break;
+        default:
+      }
+    }
+
+    DateValue start = dtStart;
+    if (bySetPos.length != 0) {
+      // Roll back till the beginning of the period to make sure that any
+      // positive indices are indexed properly.
+      // The actual iterator implementation is responsible for anything
+      // < dtStart.
+      switch (freq) {
+        case YEARLY:
+          start = dtStart instanceof TimeValue
+              ? new DateTimeValueImpl(start.year(), 1, 1, 0, 0, 0)
+              : new DateValueImpl(start.year(), 1, 1);
+          break;
+        case MONTHLY:
+          start = dtStart instanceof TimeValue
+              ? new DateTimeValueImpl(start.year(), start.month(), 1, 0, 0, 0)
+              : new DateValueImpl(start.year(), start.month(), 1);
+          break;
+        case WEEKLY:
+          int d = (7 + wkst.ordinal() - Weekday.valueOf(dtStart).ordinal()) % 7;
+          start = TimeUtils.add(dtStart, new DateValueImpl(0, 0, -d));
+          break;
+        default: break;
+      }
     }
 
     // recurrences are implemented as a sequence of periodic generators.
@@ -209,7 +265,10 @@ public class RecurrenceIteratorFactory {
     ThrottledGenerator yearGenerator = Generators.serialYearGenerator(
         freq == Frequency.YEARLY ? interval : 1, dtStart);
     Generator monthGenerator = null;
-    Generator dayGenerator;
+    Generator dayGenerator = null;
+    Generator secondGenerator = null;
+    Generator minuteGenerator = null;
+    Generator hourGenerator = null;
 
     // When multiple generators are specified for a period, they act as a union
     // operator.  We could have multiple generators (for day say) and then
@@ -221,20 +280,32 @@ public class RecurrenceIteratorFactory {
     List<Predicate<? super DateValue>> filters =
       new ArrayList<Predicate<? super DateValue>>();
 
-    // choose the appropriate generators and filters
     switch (freq) {
+      case SECONDLY:
+        if (bySecond.length == 0 || interval != 1) {
+          secondGenerator = Generators.serialSecondGenerator(interval, dtStart);
+          if (bySecond.length != 0) {
+            filters.add(Filters.bySecondFilter(bySecond));
+          }
+        }
+        break;
+      case MINUTELY:
+        if (byMinute.length == 0 || interval != 1) {
+          minuteGenerator = Generators.serialMinuteGenerator(interval, dtStart);
+          if (byMinute.length != 0) {
+            filters.add(Filters.byMinuteFilter(byMinute));
+          }
+        }
+        break;
+      case HOURLY:
+        if (byHour.length == 0 || interval != 1) {
+          hourGenerator = Generators.serialHourGenerator(interval, dtStart);
+          if (byHour.length != 0) {
+            filters.add(Filters.byHourFilter(bySecond));
+          }
+        }
+        break;
       case DAILY:
-        if (0 == byMonthDay.length) {
-          dayGenerator = Generators.serialDayGenerator(interval, dtStart);
-        } else {
-          dayGenerator = Generators.byMonthDayGenerator(byMonthDay, dtStart);
-        }
-        if (0 != byDay.length) {
-          // TODO(msamuel): the spec is not clear on this.  Treat the week
-          // numbers as weeks in the year.  This is only implemented for
-          // conformance with libical.
-          filters.add(Filters.byDayFilter(byDay, true, wkst));
-        }
         break;
       case WEEKLY:
         // week is not considered a period because a week may span multiple
@@ -242,15 +313,13 @@ public class RecurrenceIteratorFactory {
         // used to make sure that FREQ=WEEKLY;INTERVAL=2 only generates dates
         // within the proper week.
         if (0 != byDay.length) {
-          dayGenerator = Generators.byDayGenerator(byDay, false, dtStart);
+          dayGenerator = Generators.byDayGenerator(byDay, false, start);
+          byDay = NO_DAYS;
           if (interval > 1) {
             filters.add(Filters.weekIntervalFilter(interval, wkst, dtStart));
           }
         } else {
           dayGenerator = Generators.serialDayGenerator(interval * 7, dtStart);
-        }
-        if (0 != byMonthDay.length) {
-          filters.add(Filters.byMonthDayFilter(byMonthDay));
         }
         break;
       case YEARLY:
@@ -259,36 +328,23 @@ public class RecurrenceIteratorFactory {
           // the year. Valid values are 1 to 366 or -366 to -1. For example, -1
           // represents the last day of the year (December 31st) and -306
           // represents the 306th to the last day of the year (March 1st).
-          dayGenerator = Generators.byYearDayGenerator(byYearDay, dtStart);
-          if (0 != byDay.length) {
-            filters.add(Filters.byDayFilter(byDay, true, wkst));
-          }
-          if (0 != byMonthDay.length) {
-            filters.add(Filters.byMonthDayFilter(byMonthDay));
-          }
-          // TODO(msamuel): filter byWeekNo and write unit tests
+          dayGenerator = Generators.byYearDayGenerator(byYearDay, start);
           break;
         }
-        // fallthru to monthly cases
+        // $FALL-THROUGH$
       case MONTHLY:
         if (0 != byMonthDay.length) {
           // The BYMONTHDAY rule part specifies a COMMA separated list of days
           // of the month. Valid values are 1 to 31 or -31 to -1. For example,
           // -10 represents the tenth to the last day of the month.
-          dayGenerator = Generators.byMonthDayGenerator(byMonthDay, dtStart);
-          if (0 != byDay.length) {
-            filters.add(
-                Filters.byDayFilter(byDay, Frequency.YEARLY == freq, wkst));
-          }
-          // TODO(msamuel): filter byWeekNo and write unit tests
+          dayGenerator = Generators.byMonthDayGenerator(byMonthDay, start);
+          byMonthDay = NO_INTS;
         } else if (0 != byWeekNo.length && Frequency.YEARLY == freq) {
           // The BYWEEKNO rule part specifies a COMMA separated list of ordinals
           // specifying weeks of the year.  This rule part is only valid for
           // YEARLY rules.
-          dayGenerator = Generators.byWeekNoGenerator(byWeekNo, wkst, dtStart);
-          if (0 != byDay.length) {
-            filters.add(Filters.byDayFilter(byDay, true, wkst));
-          }
+          dayGenerator = Generators.byWeekNoGenerator(byWeekNo, wkst, start);
+          byWeekNo = NO_INTS;
         } else if (0 != byDay.length) {
           // Each BYDAY value can also be preceded by a positive (n) or negative
           // (-n) integer. If present, this indicates the nth occurrence of the
@@ -299,24 +355,67 @@ public class RecurrenceIteratorFactory {
           // of this type within the specified frequency. For example, within a
           // MONTHLY rule, MO represents all Mondays within the month.
           dayGenerator = Generators.byDayGenerator(
-              byDay, Frequency.YEARLY == freq && 0 == byMonth.length, dtStart);
+              byDay, Frequency.YEARLY == freq && 0 == byMonth.length, start);
+          byDay = NO_DAYS;
         } else {
           if (Frequency.YEARLY == freq) {
             monthGenerator = Generators.byMonthGenerator(
-                new int[] { dtStart.month() }, dtStart);
+                new int[] { dtStart.month() }, start);
           }
           dayGenerator = Generators.byMonthDayGenerator(
-              new int[] { dtStart.day() }, dtStart);
+              new int[] { dtStart.day() }, start);
         }
         break;
-      default:
-        throw new IllegalArgumentException(
-            "Can't iterate more frequently than daily");
+    }
+
+    if (secondGenerator == null) {
+      secondGenerator = Generators.bySecondGenerator(bySecond, start);
+    }
+    if (minuteGenerator == null) {
+      if (byMinute.length == 0 && freq.compareTo(Frequency.MINUTELY) < 0) {
+        minuteGenerator = Generators.serialMinuteGenerator(1, dtStart);
+      } else {
+        minuteGenerator = Generators.byMinuteGenerator(byMinute, start);
+      }
+    }
+    if (hourGenerator == null) {
+      if (byHour.length == 0 && freq.compareTo(Frequency.HOURLY) < 0) {
+        hourGenerator = Generators.serialHourGenerator(1, dtStart);
+      } else {
+        hourGenerator = Generators.byHourGenerator(byHour, start);
+      }
+    }
+
+    if (dayGenerator == null) {
+      boolean dailyOrMoreOften = freq.compareTo(Frequency.DAILY) <= 0;
+      if (byMonthDay.length != 0) {
+        dayGenerator = Generators.byMonthDayGenerator(byMonthDay, start);
+        byMonthDay = NO_INTS;
+      } else if (byDay.length != 0) {
+        dayGenerator = Generators.byDayGenerator(
+            byDay, Frequency.YEARLY == freq, start);
+        byDay = NO_DAYS;
+      } else if (dailyOrMoreOften) {
+        dayGenerator = Generators.serialDayGenerator(
+            Frequency.DAILY == freq ? interval : 1, dtStart);
+      } else {
+        dayGenerator = Generators.byMonthDayGenerator(
+            new int[] { dtStart.day() }, start);
+      }
+    }
+
+    if (0 != byDay.length) {
+      filters.add(Filters.byDayFilter(byDay, Frequency.YEARLY == freq, wkst));
+      byDay = NO_DAYS;
+    }
+
+    if (0 != byMonthDay.length) {
+      filters.add(Filters.byMonthDayFilter(byMonthDay));
     }
 
     // generator inference common to all periods
     if (0 != byMonth.length) {
-      monthGenerator = Generators.byMonthGenerator(byMonth, dtStart);
+      monthGenerator = Generators.byMonthGenerator(byMonth, start);
     } else if (null == monthGenerator) {
       monthGenerator = Generators.serialMonthGenerator(
           freq == Frequency.MONTHLY ? interval : 1, dtStart);
@@ -358,47 +457,37 @@ public class RecurrenceIteratorFactory {
         filter = filters.get(0);
         break;
       default:
-        filter = Predicates.and(filters.toArray(new Predicate[0]));
+        filter = Predicates.and(filters);
         break;
     }
 
-    Generator instanceGenerator;
-    if (0 != bySetPos.length) {
-      switch (freq) {
-        case WEEKLY:
-        case MONTHLY:
-        case YEARLY:
-          instanceGenerator = InstanceGenerators.bySetPosInstanceGenerator(
-              bySetPos, freq, wkst, filter,
-              yearGenerator, monthGenerator, dayGenerator);
-          break;
-        default:
-          // TODO(msamuel): if we allow iteration more frequently than daily
-          // then we will need to implement bysetpos for hours, minutes, and
-          // seconds.  It should be sufficient though to simply choose the
-          // instance of the set statically for every occurrence except the
-          // first.
-          // E.g. RRULE:FREQ=DAILY;BYHOUR=0,6,12,18;BYSETPOS=1
-          // for DTSTART:20000101T130000
-          // will yield
-          // 20000101T180000
-          // 20000102T000000
-          // 20000103T000000
-          // ...
+    if (false) {
+      System.err.println("  start=" + start + "\ndtStart=" + dtStart);
+      System.err.println("  yearGenerator=" + yearGenerator);
+      System.err.println(" monthGenerator=" + monthGenerator);
+      System.err.println("   dayGenerator=" + dayGenerator);
+      System.err.println("  hourGenerator=" + hourGenerator);
+      System.err.println("minuteGenerator=" + minuteGenerator);
+      System.err.println("secondGenerator=" + secondGenerator);
+    }
 
-          instanceGenerator = InstanceGenerators.serialInstanceGenerator(
-              filter, yearGenerator, monthGenerator, dayGenerator);
-          break;
-      }
+    Generator instanceGenerator = null;
+    if (0 != bySetPos.length) {
+      instanceGenerator = InstanceGenerators.bySetPosInstanceGenerator(
+          bySetPos, freq, wkst, filter,
+          yearGenerator, monthGenerator, dayGenerator, hourGenerator,
+          minuteGenerator, secondGenerator);
     } else {
       instanceGenerator = InstanceGenerators.serialInstanceGenerator(
-          filter, yearGenerator, monthGenerator, dayGenerator);
+          filter, yearGenerator, monthGenerator, dayGenerator,
+          hourGenerator, minuteGenerator, secondGenerator);
     }
 
     return new RRuleIteratorImpl(
-        dtStart, tzid, condition, filter, instanceGenerator,
-        yearGenerator, monthGenerator, dayGenerator, canShortcutAdvance,
-        startTime);
+        dtStart, tzid, condition, instanceGenerator,
+        yearGenerator, monthGenerator, dayGenerator,
+        hourGenerator, minuteGenerator, secondGenerator,
+        canShortcutAdvance);
   }
 
   /**
@@ -479,6 +568,30 @@ public class RecurrenceIteratorFactory {
     }
     return out;
   }
+
+  /**
+   * Given an array like BYMONTH=2,3,4,5 and a set pos like BYSETPOS=1,-1
+   * reduce both clauses to a single one, BYMONTH=2,5 in the preceding.
+   */
+  private static int[] filterBySetPos(int[] members, int[] bySetPos) {
+    members = Util.uniquify(members);
+    IntSet iset = new IntSet();
+    for (int pos : bySetPos) {
+      if (pos == 0) { continue; }
+      if (pos < 0) {
+        pos += members.length;
+      } else {
+        --pos;  // Zero-index.
+      }
+      if (pos >= 0 && pos < members.length) {
+        iset.add(members[pos]);
+      }
+    }
+    return iset.toIntArray();
+  }
+
+  private static final int[] NO_INTS = new int[0];
+  private static final WeekdayNum[] NO_DAYS = new WeekdayNum[0];
 
   private RecurrenceIteratorFactory() {
     // uninstantiable

@@ -20,6 +20,7 @@ import com.google.ical.util.TimeUtils;
 import com.google.ical.values.DateValue;
 import com.google.ical.values.DateValueImpl;
 import com.google.ical.values.TimeValue;
+
 import java.util.TimeZone;
 
 /**
@@ -35,11 +36,6 @@ final class RRuleIteratorImpl implements RecurrenceIterator {
    */
   private final Predicate<? super DateValue> condition_;
   /**
-   * a function that applies secondary rules to eliminate some dates.
-   * Takes a builder and yields isPartOfRecurrence:boolean.
-   */
-  private final Predicate<? super DateValue> filter_;
-  /**
    * a function that applies the various period generators to generate an entire
    * date.
    * This may involve generating a set of dates and discarding all but those
@@ -48,19 +44,14 @@ final class RRuleIteratorImpl implements RecurrenceIterator {
   private final Generator instanceGenerator_;
   /**
    * a function that takes a builder and populates the year field.
-   * Returns false if no more years available.
+   * Returns false if there aren't more years available.
    */
   private final ThrottledGenerator yearGenerator_;
   /**
    * a function that takes a builder and populates the month field.
-   * Returns false if no more months available in the builder's year.
+   * Returns false if there aren't more months available in the builder's year.
    */
   private final Generator monthGenerator_;
-  /**
-   * a function that takes a builder and populates the day of month field.
-   * Returns false if no more days available in the builder's month.
-   */
-  private final Generator dayGenerator_;
   /**
    * a date that has been computed but not yet yielded to the user.
    */
@@ -91,33 +82,55 @@ final class RRuleIteratorImpl implements RecurrenceIterator {
   /** An iterator that generates dates from an RFC2445 Recurrence Rule */
   RRuleIteratorImpl(
     DateValue dtStart, TimeZone tzid, Predicate<? super DateValue> condition,
-    Predicate<? super DateValue> filter,
     Generator instanceGenerator, ThrottledGenerator yearGenerator,
     Generator monthGenerator, Generator dayGenerator,
-    boolean canShortcutAdvance, TimeValue startTime) {
+    Generator hourGenerator, Generator minuteGenerator,
+    Generator secondGenerator,
+    boolean canShortcutAdvance) {
 
     this.condition_ = condition;
-    this.filter_ = filter;
     this.instanceGenerator_ = instanceGenerator;
     this.yearGenerator_ = yearGenerator;
     this.monthGenerator_ = monthGenerator;
-    this.dayGenerator_ = dayGenerator;
     this.dtStart_ = dtStart;
     this.tzid_ = tzid;
     this.canShortcutAdvance_ = canShortcutAdvance;
 
+    int initWorkLimit = 1000;
+
     // Initialize the builder and skip over any extraneous start instances
-    this.builder_ = new DTBuilder(dtStart);
-    if (null != startTime) {
-      this.builder_.hour = startTime.hour();
-      this.builder_.minute = startTime.minute();
-      this.builder_.second = startTime.second();
-    }
-    // Apply the year and month generators so that we can start with the day
-    // generator on the first call to FetchNext_.
+    DTBuilder builder = new DTBuilder(dtStart);
+    this.builder_ = builder;
+    // Apply the generators from largest field to smallest so we can start by
+    // applying the smallest field iterator when asked to generate a date.
     try {
-      this.yearGenerator_.generate(this.builder_);
-      this.monthGenerator_.generate(this.builder_);
+      Generator[] toInitialize;
+      if (InstanceGenerators.skipSubDayGenerators(
+              hourGenerator, minuteGenerator, secondGenerator)) {
+        toInitialize = new Generator[] { yearGenerator, monthGenerator };
+        builder.hour = ((SingleValueGenerator) hourGenerator).getValue();
+        builder.minute = ((SingleValueGenerator) minuteGenerator).getValue();
+        builder.second = ((SingleValueGenerator) secondGenerator).getValue();
+      } else {
+        toInitialize = new Generator[] {
+            yearGenerator, monthGenerator, dayGenerator,
+            hourGenerator, minuteGenerator,
+        };
+      }
+      for (int i = 0; i != toInitialize.length;) {
+        if (toInitialize[i].generate(builder)) {
+          ++i;
+        } else {
+          if (--i < 0) {  // No years left.
+            this.done_ = true;
+            break;
+          }
+        }
+        if (--initWorkLimit == 0) {
+          this.done_ = true;
+          break;
+        }
+      }
     } catch (Generator.IteratorShortCircuitingException ex) {
       this.done_ = true;
     }
@@ -135,6 +148,10 @@ final class RRuleIteratorImpl implements RecurrenceIterator {
           this.done_ = true;
           this.pendingUtc_ = null;
         }
+        break;
+      }
+      if (--initWorkLimit == 0) {
+        this.done_ = true;
         break;
       }
     }
@@ -255,7 +272,6 @@ final class RRuleIteratorImpl implements RecurrenceIterator {
     try {
       do {
         if (!this.instanceGenerator_.generate(this.builder_)) { return null; }
-        // TODO(msamuel): apply byhour, byminute, bysecond rules here
         DateValue dUtc = this.dtStart_ instanceof TimeValue
             ? TimeUtils.toUtc(this.builder_.toDateTime(), this.tzid_)
             : this.builder_.toDate();

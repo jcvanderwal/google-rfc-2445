@@ -18,6 +18,7 @@ import com.google.ical.util.DTBuilder;
 import com.google.ical.util.Predicate;
 import com.google.ical.util.TimeUtils;
 import com.google.ical.values.Frequency;
+import com.google.ical.values.TimeValue;
 import com.google.ical.values.Weekday;
 import com.google.ical.values.DateValue;
 
@@ -39,8 +40,11 @@ class InstanceGenerators {
   static Generator serialInstanceGenerator(
       final Predicate<? super DateValue> filter,
       final Generator yearGenerator, final Generator monthGenerator,
-      final Generator dayGenerator) {
-    return new Generator() {
+      final Generator dayGenerator, final Generator hourGenerator,
+      final Generator minuteGenerator, final Generator secondGenerator) {
+    if (skipSubDayGenerators(hourGenerator, minuteGenerator, secondGenerator)) {
+      // Fast case for generators that are not more frequent than daily.
+      return new Generator() {
         @Override
         public boolean generate(DTBuilder builder)
             throws IteratorShortCircuitingException {
@@ -58,23 +62,60 @@ class InstanceGenerators {
               }
             }
             // apply filters to generated dates
-          } while (!filter.apply(builder.toDate()));
+          } while (!filter.apply(builder.toDateTime()));
 
           return true;
         }
       };
+    } else {
+      return new Generator() {
+        @Override
+        public boolean generate(DTBuilder builder)
+            throws IteratorShortCircuitingException {
+          // cascade through periods to compute the next date
+          do {
+            // until we run out of seconds in the current minute
+            while (!secondGenerator.generate(builder)) {
+              // until we run out of minutes in the current hour
+              while (!minuteGenerator.generate(builder)) {
+                // until we run out of hours in the current day
+                while (!hourGenerator.generate(builder)) {
+                  // until we run out of days in the current month
+                  while (!dayGenerator.generate(builder)) {
+                    // until we run out of months in the current year
+                    while (!monthGenerator.generate(builder)) {
+                      // if there are more years available fetch one
+                      if (!yearGenerator.generate(builder)) {
+                        // otherwise the recurrence is exhausted
+                        return false;
+                      }
+                    }
+                  }
+                }
+              }
+            }
+            // apply filters to generated dates
+          } while (!filter.apply(builder.toDateTime()));
+          // TODO: maybe group the filters into different kinds so we don't
+          // apply filters that only affect days to every second.
+
+          return true;
+        }
+      };
+    }
   }
 
   static Generator bySetPosInstanceGenerator(
       int[] setPos, final Frequency freq, final Weekday wkst,
       final Predicate<? super DateValue> filter,
       final Generator yearGenerator, final Generator monthGenerator,
-      final Generator dayGenerator) {
+      final Generator dayGenerator, final Generator hourGenerator,
+      final Generator minuteGenerator, final Generator secondGenerator) {
     final int[] uSetPos = Util.uniquify(setPos);
 
-    final Generator serialInstanceGenerator =
-      serialInstanceGenerator(
-          filter, yearGenerator, monthGenerator, dayGenerator);
+    final Generator serialInstanceGenerator = serialInstanceGenerator(
+          filter, yearGenerator, monthGenerator, dayGenerator,
+          hourGenerator, minuteGenerator, secondGenerator);
 
     final boolean allPositive;
     final int maxPos;
@@ -136,7 +177,7 @@ class InstanceGenerators {
               switch (freq) {
                 case YEARLY:
                   if (!yearGenerator.generate(builder)) { return false; }
-                  // fallthru
+                  // $FALL-THROUGH$
                 case MONTHLY:
                   while (!monthGenerator.generate(builder)) {
                     if (!yearGenerator.generate(builder)) { return false; }
@@ -145,13 +186,13 @@ class InstanceGenerators {
                 case WEEKLY:
                   // consume because just incrementing date doesn't do anything
                   DateValue nextWeek =
-                    Util.nextWeekStart(builder.toDate(), wkst);
+                    Util.nextWeekStart(builder.toDateTime(), wkst);
                   do {
                     if (!serialInstanceGenerator.generate(builder)) {
                       return false;
                     }
                   } while (builder.compareTo(nextWeek) < 0);
-                  d0 = builder.toDate();
+                  d0 = builder.toDateTime();
                   break;
                 default:
                   break;
@@ -185,8 +226,9 @@ class InstanceGenerators {
                 // via an exception because otherwise we would pick the wrong
                 // elements for some uSetPoses that contain negative elements.
                 done = true;
+                break;
               }
-              DateValue d = builder.toDate();
+              DateValue d = builder.toDateTime();
               boolean contained = false;
               if (null == d0) {
                 d0 = d;
@@ -213,7 +255,8 @@ class InstanceGenerators {
                     contained = d0.year() == d.year();
                     break;
                   default:
-                    break;
+                    done = true;
+                    return false;
                 }
               }
               if (contained) {
@@ -240,10 +283,9 @@ class InstanceGenerators {
             }
 
             candidates = new ArrayList<DateValue>();
-            for (int j = 0; j < absSetPos.length; ++j) {
-              int p = absSetPos[j] - 1;
-              if (p >= 0 && p < dates.size()) {
-                candidates.add(dates.get(p));
+            for (int p : absSetPos) {
+              if (p >= 1 && p <= dates.size()) {  // p is 1-indexed
+                candidates.add(dates.get(p - 1));
               }
             }
             i = 0;
@@ -259,10 +301,23 @@ class InstanceGenerators {
           builder.year = d.year();
           builder.month = d.month();
           builder.day = d.day();
+          if (d instanceof TimeValue) {
+            TimeValue t = (TimeValue) d;
+            builder.hour = t.hour();
+            builder.minute = t.minute();
+            builder.second = t.second();
+          }
           return true;
         }
       };
+  }
 
+  static boolean skipSubDayGenerators(
+      Generator hourGenerator, Generator minuteGenerator,
+      Generator secondGenerator) {
+    return secondGenerator instanceof SingleValueGenerator
+        && minuteGenerator instanceof SingleValueGenerator
+        && hourGenerator instanceof SingleValueGenerator;
   }
 
   private InstanceGenerators() {

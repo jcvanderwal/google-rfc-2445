@@ -25,26 +25,25 @@ import com.google.ical.values.TimeValue;
 import com.google.ical.values.Weekday;
 import com.google.ical.values.WeekdayNum;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.Random;
 import java.util.TimeZone;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import java.util.regex.Pattern;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import junit.framework.TestCase;
 
 /**
  * simulate a large number of monkeys banging on a calendar.
  *
- * @author mikesamuel+svn@gmail.com (Mike Samuel)
+ * @author mikesamuel@gmail.com (Mike Samuel)
  */
 public class MonkeyKeyboardTest extends TestCase {
 
   static final TimeZone PST = TimeZone.getTimeZone("America/Los_Angeles");
+
+  static final Timer timer = new Timer();
 
   long seed;
   Random rnd;
@@ -65,44 +64,21 @@ public class MonkeyKeyboardTest extends TestCase {
     super.tearDown();
   }
 
-  public void testNoExceptionsThrownOnWelformedRrules() throws Throwable {
-    final int nRuns = 1000;
-    final int countLimit = 2000;
-    int totalGened = 0;  // total number of instances generated.
-    Histogram histogram = new Histogram(nRuns);
-    for (int i = 0; i < nRuns; ++i) {
-      boolean timed = rnd.nextBoolean();
-      RRule rrule = monkeySeeRRule(timed, true);
-      DateValue dtStart = monkeySeeDateValue(maybeNot(timed));
-      try {
-        if (Frequency.DAILY.compareTo(rrule.getFreq()) <= 0) {
-          RecurrenceIterator it =
-            RecurrenceIteratorFactory
-            .createRecurrenceIterator(rrule, dtStart, PST);
-          int tries = countLimit;
-          long t0 = System.nanoTime();
-          while (it.hasNext() && --tries >= 0) {
-            it.next();
-          }
-          long dt = System.nanoTime() - t0;
-          histogram.addSample(dt / 1000);  // nanoseconds -> microseconds
-          totalGened += countLimit - tries;
-        }
-      } catch (Throwable th) {
-        System.err.println(rrule.toIcal() + " / " + dtStart);
-        throw th;
-      }
-    }
-    // to see this, run the test with --nooutputredirect
-    histogram.dump(16, "microseconds");
-    System.out.println("totalGenerated=" + totalGened);
-  }
-
   public void testTimeGoesForward() throws Throwable {
     for (int i = 0; i < 1000; ++i) {
+      System.err.print("<");
+      DumpStackTask task = dumpStackIfRunsTooLong();
+
       boolean timed = rnd.nextBoolean();
       RRule rrule = monkeySeeRRule(timed, false);
-      DateValue dtStart = monkeySeeDateValue(maybeNot(timed));
+      task.rrule = rrule;
+      boolean needsTime = rrule.getFreq().compareTo(Frequency.DAILY) < 0
+          || rrule.getByHour().length != 0
+          || rrule.getByMinute().length != 0
+          || rrule.getBySecond().length != 0;
+      DateValue dtStart = monkeySeeDateValue(needsTime || maybeNot(timed));
+      task.dtStart = task.dtStart;
+
       RecurrenceIterator it;
       try {
         it = RecurrenceIteratorFactory.createRecurrenceIterator(
@@ -110,8 +86,10 @@ public class MonkeyKeyboardTest extends TestCase {
       } catch (Throwable th) {
         // if we can't create it, don't worry.  This is only testing order of
         // results.
+        task.cancel();
         continue;
       }
+
       try {
         int tries = 200;
         DateValue last = null;
@@ -122,10 +100,50 @@ public class MonkeyKeyboardTest extends TestCase {
           last = dv;
         }
       } catch (Throwable th) {
-        System.err.println(rrule.toIcal() + " / " + dtStart);
+        task.cancel();
+        System.err.println("\n" + rrule.toIcal() + " / " + dtStart);
         throw th;
       }
+      task.cancel();
+      System.err.print(">");
     }
+  }
+
+  public void testNoExceptionsThrownOnWelformedRrules() throws Throwable {
+    final int nRuns = 1000;
+    final int countLimit = 2000;
+    int totalGened = 0;  // total number of instances generated.
+    Histogram histogram = new Histogram(nRuns);
+    for (int i = 0; i < nRuns; ++i) {
+      System.err.print("<");
+      DumpStackTask task = dumpStackIfRunsTooLong();
+      boolean timed = rnd.nextBoolean();
+      RRule rrule = monkeySeeRRule(timed, true);
+      task.rrule = rrule;
+      DateValue dtStart = monkeySeeDateValue(maybeNot(timed));
+      task.dtStart = dtStart;
+      try {
+        RecurrenceIterator it = RecurrenceIteratorFactory
+            .createRecurrenceIterator(rrule, dtStart, PST);
+        int tries = countLimit;
+        long t0 = System.nanoTime();
+        while (it.hasNext() && --tries >= 0) {
+          it.next();
+        }
+        long dt = System.nanoTime() - t0;
+        histogram.addSample(dt / 1000);  // nanoseconds -> microseconds
+        totalGened += countLimit - tries;
+      } catch (Throwable th) {
+        task.cancel();
+        System.err.println("\n" + rrule.toIcal() + " / " + dtStart);
+        throw th;
+      }
+      task.cancel();
+      System.err.print(">");
+    }
+    // to see this, run the test with --nooutputredirect
+    histogram.dump(16, "microseconds");
+    System.out.println("totalGenerated=" + totalGened);
   }
 
   static final Frequency[] FREQS = Frequency.values();
@@ -143,15 +161,10 @@ public class MonkeyKeyboardTest extends TestCase {
     RRule rrule = new RRule();
     rrule.setName(rnd.nextInt(4) < 1 ? "EXRULE" : "RRULE");
     // pick a frequency
-    Frequency freq;
-    if (wellFormed || true) {
-      // this is stretching the definition of well formed, but we don't do
-      // more frequently than daily, so
-      freq = FREQS[Frequency.DAILY.ordinal()
-                   + rnd.nextInt(FREQS.length - Frequency.DAILY.ordinal())];
-    } else {
-      freq = FREQS[rnd.nextInt(FREQS.length)];
-    }
+    // This is stretching the definition of well formed, but we don't do
+    // more frequently than daily.
+    // TODO: allow more frequently than DAILY. BEFORE SUBMIT
+    Frequency freq = FREQS[rnd.nextInt(FREQS.length)];
     rrule.setFreq(freq);
 
     if (rnd.nextBoolean()) {
@@ -174,7 +187,7 @@ public class MonkeyKeyboardTest extends TestCase {
 
     boolean allowsByDay = freq.compareTo(Frequency.WEEKLY) >= 0;
     if (0 == rnd.nextInt(sparsity) && maybeNot(allowsByDay)) {
-      rrule.setByDay(Arrays.asList(monkeySeeWeekdayNumList(freq, wellFormed)));
+      rrule.setByDay(Arrays.asList(monkeySeeWeekdayNumList(freq)));
     }
 
     if (0 == rnd.nextInt(sparsity)) {
@@ -198,21 +211,15 @@ public class MonkeyKeyboardTest extends TestCase {
     }
 
     if (0 == rnd.nextInt(sparsity * 2)) {
-      rrule.setByHour(wellFormed
-                      ? new int[] { rnd.nextInt(24) }
-                      : monkeySeeIntArray(0, 23, 3, true));
+      rrule.setByHour(monkeySeeIntArray(0, 23, 3, true));
     }
 
     if (0 == rnd.nextInt(sparsity * 2)) {
-      rrule.setByMinute(wellFormed
-                        ? new int[] { rnd.nextInt(60) }
-                        : monkeySeeIntArray(0, 60, 3, true));
+      rrule.setByMinute(monkeySeeIntArray(0, 60, 3, true));
     }
 
     if (0 == rnd.nextInt(sparsity * 2)) {
-      rrule.setBySecond(wellFormed
-                        ? new int[] { rnd.nextInt(60) }
-                        : monkeySeeIntArray(0, 60, 3, true));
+      rrule.setBySecond(monkeySeeIntArray(0, 60, 3, true));
     }
 
     boolean largestSetPlural = false;
@@ -264,7 +271,7 @@ public class MonkeyKeyboardTest extends TestCase {
     return ints;
   }
 
-  WeekdayNum[] monkeySeeWeekdayNumList(Frequency freq, boolean wellFormed) {
+  WeekdayNum[] monkeySeeWeekdayNumList(Frequency freq) {
     int numRange;
     switch (freq) {
       case WEEKLY:
@@ -295,13 +302,19 @@ public class MonkeyKeyboardTest extends TestCase {
   DateValue monkeySeeDateValue(boolean timed) {
     double daysFromNow = (10 * rnd.nextGaussian()) + 10;  // bias towards future
     if (timed) {
-      assert !(refDate instanceof TimeValue);
-      return TimeUtils.add(refDate, new DateValueImpl(0, 0, (int) daysFromNow));
-    } else {
       return TimeUtils.add(
           refDate, new DateTimeValueImpl(
               0, 0, 0, 0, 0, (int) (daysFromNow * 24 * 60 * 60)));
+    } else {
+      assert !(refDate instanceof TimeValue);
+      return TimeUtils.add(refDate, new DateValueImpl(0, 0, (int) daysFromNow));
     }
+  }
+
+  private DumpStackTask dumpStackIfRunsTooLong() {
+    DumpStackTask task = new DumpStackTask();
+    timer.schedule(task, 10000);
+    return task;
   }
 
   /** generate a batch of 10000 random recurrence rules. */
@@ -369,4 +382,21 @@ class Histogram {
                        ", median=" + samples[samples.length / 2]);
   }
 
+}
+
+class DumpStackTask extends TimerTask {
+  RRule rrule;
+  DateValue dtStart;
+  final Thread thread = Thread.currentThread();
+
+  @Override
+  public void run() {
+    System.err.println(
+        "\nTime out of " + (rrule != null ? rrule.toIcal() : "<null>")
+        + " / " + dtStart);
+    for (StackTraceElement el : thread.getStackTrace()) {
+      System.err.println("\t" + el.toString());
+    }
+    System.err.println();
+  }
 }

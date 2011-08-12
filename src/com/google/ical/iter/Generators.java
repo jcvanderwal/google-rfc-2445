@@ -18,6 +18,7 @@ import com.google.ical.util.DTBuilder;
 import com.google.ical.util.TimeUtils;
 import com.google.ical.values.DateValue;
 import com.google.ical.values.DateValueImpl;
+import com.google.ical.values.TimeValue;
 import com.google.ical.values.Weekday;
 import com.google.ical.values.WeekdayNum;
 import java.util.Arrays;
@@ -186,6 +187,169 @@ final class Generators {
   }
 
   /**
+   * constructs a generator that generates hours in the given builder's day
+   * successively counting from the first hour passed in.
+   * @param interval number of hours to advance each step.
+   * @param dtStart non null.
+   * @return the day in dtStart the first time called and interval + last
+   *   return value on subsequent calls.
+   */
+  static Generator serialHourGenerator(
+      final int interval, final DateValue dtStart) {
+
+    return new Generator() {
+      int hour = ((dtStart instanceof TimeValue)
+          ? ((TimeValue) dtStart).hour() : 0) - interval;
+      int day = dtStart.day();
+      int month = dtStart.month();
+      int year = dtStart.year();
+
+      @Override
+      boolean generate(DTBuilder builder) {
+        int nhour;
+        if (day != builder.day || month != builder.month
+            || year != builder.year) {
+          int hoursBetween = daysBetween(
+              builder, year, month, day) * 24 - hour;
+          nhour = ((interval - (hoursBetween % interval)) % interval);
+          if (nhour > 23) {
+            // Don't update day so that the difference calculation above is
+            // correct when this function is reentered with a different day
+            return false;
+          }
+          day = builder.day;
+          month = builder.month;
+          year = builder.year;
+        } else {
+          nhour = hour + interval;
+          if (nhour > 23) {
+            return false;
+          }
+        }
+        hour = builder.hour = nhour;
+        return true;
+      }
+
+      @Override
+      public String toString() { return "serialHourGenerator:" + interval; }
+    };
+  }
+
+  /**
+   * constructs a generator that generates minutes in the given builder's hour
+   * successively counting from the first minute passed in.
+   * @param interval number of minutes to advance each step.
+   * @param dtStart non null.
+   * @return the day in dtStart the first time called and interval + last
+   *   return value on subsequent calls.
+   */
+  static Generator serialMinuteGenerator(
+      final int interval, final DateValue dtStart) {
+
+    return new Generator() {
+      int minute = (dtStart instanceof TimeValue
+        ? ((TimeValue) dtStart).minute() : 0) - interval;
+      int hour = dtStart instanceof TimeValue
+        ? ((TimeValue) dtStart).hour() : 0;
+      int day = dtStart.day();
+      int month = dtStart.month();
+      int year = dtStart.year();
+
+      @Override
+      boolean generate(DTBuilder builder) {
+        int nminute;
+        if (hour != builder.hour || day != builder.day || month != builder.month
+            || year != builder.year) {
+          int minutesBetween = (daysBetween(
+              builder, year, month, day) * 24 + builder.hour - hour) * 60
+              - minute;
+          nminute = ((interval - (minutesBetween % interval)) % interval);
+          if (nminute > 59) {
+            // Don't update day so that the difference calculation above is
+            // correct when this function is reentered with a different day
+            return false;
+          }
+          hour = builder.hour;
+          day = builder.day;
+          month = builder.month;
+          year = builder.year;
+        } else {
+          nminute = minute + interval;
+          if (nminute > 59) {
+            return false;
+          }
+        }
+        minute = builder.minute = nminute;
+        return true;
+      }
+
+      @Override
+      public String toString() {
+        return "serialMinuteGenerator:" + interval;
+      }
+    };
+  }
+
+
+  /**
+   * constructs a generator that generates seconds in the given builder's minute
+   * successively counting from the first second passed in.
+   * @param interval number of seconds to advance each step.
+   * @param dtStart non null.
+   * @return the day in dtStart the first time called and interval + last
+   *   return value on subsequent calls.
+   */
+  static Generator serialSecondGenerator(
+      final int interval, final DateValue dtStart) {
+
+    return new Generator() {
+      int second = (dtStart instanceof TimeValue
+          ? ((TimeValue) dtStart).second() : 0) - interval;
+      int minute = dtStart instanceof TimeValue
+          ? ((TimeValue) dtStart).minute() : 0;
+      int hour = dtStart instanceof TimeValue
+          ? ((TimeValue) dtStart).hour() : 0;
+      int day = dtStart.day();
+      int month = dtStart.month();
+      int year = dtStart.year();
+
+      @Override
+      boolean generate(DTBuilder builder) {
+        int nsecond;
+        if (minute != builder.minute || hour != builder.hour
+            || day != builder.day || month != builder.month
+            || year != builder.year) {
+          int secondsBetween = ((daysBetween(
+              builder, year, month, day) * 24 + builder.hour - hour) * 60
+              + builder.minute - minute) * 60 - second ;
+          nsecond = ((interval - (secondsBetween % interval)) % interval);
+          if (nsecond > 59) {
+            // Don't update day so that the difference calculation above is
+            // correct when this function is reentered with a different day
+            return false;
+          }
+          minute = builder.minute;
+          hour = builder.hour;
+          day = builder.day;
+          month = builder.month;
+          year = builder.year;
+        } else {
+          nsecond = second + interval;
+          if (nsecond > 59) {
+            return false;
+          }
+        }
+        second = builder.second = nsecond;
+        return true;
+      }
+
+      @Override
+      public String toString() { return "serialSecondGenerator:" + interval; }
+    };
+  }
+
+
+  /**
    * constructs a generator that yields the specified years in increasing order.
    */
   static Generator byYearGenerator(int[] years, final DateValue dtStart) {
@@ -235,7 +399,257 @@ final class Generators {
         }
 
         @Override
-        public String toString() { return "byMonthGenerator"; }
+        public String toString() {
+          return "byMonthGenerator:" + Arrays.toString(umonths);
+        }
+      };
+  }
+
+  /**
+   * constructs a generator that yields the specified hours in increasing order
+   * for each day.
+   * @param hours values in [0-23]
+   * @param dtStart non null
+   */
+  static Generator byHourGenerator(int[] hours, final DateValue dtStart) {
+    int startHour = dtStart instanceof TimeValue
+        ? ((TimeValue) dtStart).hour() : 0;
+    hours = Util.uniquify(hours);
+    if (hours.length == 0) {
+      hours = new int[] { startHour };
+    }
+    final int[] uhours = hours;
+
+    if (uhours.length == 1) {
+      final int hour = uhours[0];
+
+      return new SingleValueGenerator() {
+        int year;
+        int month;
+        int day;
+
+        @Override
+        boolean generate(DTBuilder builder) {
+          if ((year != builder.year) || (month != builder.month)
+              || (day != builder.day)) {
+            year = builder.year;
+            month = builder.month;
+            day = builder.day;
+            builder.hour = hour;
+            return true;
+          }
+          return false;
+        }
+
+        @Override
+        int getValue() { return hour; }
+
+        @Override
+        public String toString() { return "byHourGenerator:" + hour; }
+      };
+    }
+
+    return new Generator() {
+        int i;
+        int year = dtStart.year();
+        int month = dtStart.month();
+        int day = dtStart.day();
+        {
+          int hour = dtStart instanceof TimeValue
+              ? ((TimeValue) dtStart).hour() : 0;
+          while (i < uhours.length && uhours[i] < hour) { ++i; }
+        }
+
+        @Override
+        boolean generate(DTBuilder builder) {
+          if ((year != builder.year) || (month != builder.month)
+              || (day != builder.day)) {
+            i = 0;
+            year = builder.year;
+            month = builder.month;
+            day = builder.day;
+          }
+          if (i >= uhours.length) { return false; }
+          builder.hour = uhours[i++];
+          return true;
+        }
+
+        @Override
+        public String toString() {
+          return "byHourGenerator:" + Arrays.toString(uhours);
+        }
+      };
+  }
+
+  /**
+   * constructs a generator that yields the specified minutes in increasing
+   * order for each hour.
+   * @param minutes values in [0-59]
+   * @param dtStart non null
+   */
+  static Generator byMinuteGenerator(
+      int[] minutes, final DateValue dtStart) {
+    minutes = Util.uniquify(minutes);
+    if (minutes.length == 0) {
+      minutes = new int[] {
+          dtStart instanceof TimeValue ? ((TimeValue) dtStart).minute() : 0
+      };
+    }
+    final int[] uminutes = minutes;
+
+    if (uminutes.length == 1) {
+      final int minute = uminutes[0];
+
+      return new SingleValueGenerator() {
+        int year;
+        int month;
+        int day;
+        int hour;
+
+        @Override
+        boolean generate(DTBuilder builder) {
+          if ((year != builder.year) || (month != builder.month)
+              || (day != builder.day) || (hour != builder.hour)) {
+            year = builder.year;
+            month = builder.month;
+            day = builder.day;
+            hour = builder.hour;
+            builder.minute = minute;
+            return true;
+          }
+          return false;
+        }
+
+        @Override
+        int getValue() { return minute; }
+
+        @Override
+        public String toString() { return "byMinuteGenerator:" + minute; }
+      };
+    }
+
+    return new Generator() {
+        int i;
+        int year = dtStart.year();
+        int month = dtStart.month();
+        int day = dtStart.day();
+        int hour = dtStart instanceof TimeValue
+            ? ((TimeValue) dtStart).hour() : 0;
+        {
+          int minute = dtStart instanceof TimeValue
+              ? ((TimeValue) dtStart).minute() : 0;
+          while (i < uminutes.length && uminutes[i] < minute) { ++i; }
+        }
+
+        @Override
+        boolean generate(DTBuilder builder) {
+          if ((year != builder.year) || (month != builder.month)
+              || (day != builder.day) || (hour != builder.hour)) {
+            i = 0;
+            year = builder.year;
+            month = builder.month;
+            day = builder.day;
+            hour = builder.hour;
+          }
+          if (i >= uminutes.length) { return false; }
+          builder.minute = uminutes[i++];
+          return true;
+        }
+
+        @Override
+        public String toString() {
+          return "byMinuteGenerator:" + Arrays.toString(uminutes);
+        }
+      };
+  }
+
+  /**
+   * constructs a generator that yields the specified seconds in increasing
+   * order for each minute.
+   * @param seconds values in [0-59]
+   * @param dtStart non null
+   */
+  static Generator bySecondGenerator(
+      int[] seconds, final DateValue dtStart) {
+    seconds = Util.uniquify(seconds);
+    if (seconds.length == 0) {
+      seconds = new int[] {
+          dtStart instanceof TimeValue ? ((TimeValue) dtStart).second() : 0
+      };
+    }
+    final int[] useconds = seconds;
+
+    if (useconds.length == 1) {
+      final int second = useconds[0];
+
+      return new SingleValueGenerator() {
+        int year;
+        int month;
+        int day;
+        int hour;
+        int minute;
+
+        @Override
+        boolean generate(DTBuilder builder) {
+          if ((year != builder.year) || (month != builder.month)
+              || (day != builder.day) || (hour != builder.hour)
+              || (minute != builder.minute)) {
+            year = builder.year;
+            month = builder.month;
+            day = builder.day;
+            hour = builder.hour;
+            minute = builder.minute;
+            builder.second = second;
+            return true;
+          }
+          return false;
+        }
+
+        @Override
+        int getValue() { return second; }
+
+        @Override
+        public String toString() { return "bySecondGenerator:" + second; }
+      };
+    }
+
+    return new Generator() {
+        int i;
+        int year = dtStart.year();
+        int month = dtStart.month();
+        int day = dtStart.day();
+        int hour = dtStart instanceof TimeValue
+            ? ((TimeValue) dtStart).hour() : 0;
+        int minute = dtStart instanceof TimeValue
+            ? ((TimeValue) dtStart).minute() : 0;
+        {
+          int second = dtStart instanceof TimeValue
+            ? ((TimeValue) dtStart).second() : 0;
+          while (i < useconds.length && useconds[i] < second) { ++i; }
+        }
+
+
+        @Override
+        boolean generate(DTBuilder builder) {
+          if ((year != builder.year) || (month != builder.month)
+              || (day != builder.day) || (hour != builder.hour)
+              || (minute != builder.minute)) {
+            i = 0;
+            year = builder.year;
+            month = builder.month;
+            day = builder.day;
+            hour = builder.hour;
+            minute = builder.minute;
+          }
+          if (i >= useconds.length) { return false; }
+          builder.second = useconds[i++];
+          return true;
+        }
+
+        @Override
+        public String toString() {
+          return "bySecondGenerator:" + Arrays.toString(useconds);
+        }
       };
   }
 
@@ -317,7 +731,11 @@ final class Generators {
         /** index of next date to return */
         int i = 0;
 
-        { generateDates(); }
+        {
+          generateDates();
+          int day = dtStart.day();
+          while (i < dates.length && dates[i] < day) { ++i; }
+        }
 
         void generateDates() {
           int nDays;
@@ -378,7 +796,8 @@ final class Generators {
 
         @Override
         public String toString() {
-          return "byDayGenerator:" + Arrays.toString(udays);
+          return "byDayGenerator:" + Arrays.toString(udays)
+              + " by " + (weeksInYear ? "year" : "week");
         }
       };
   }
@@ -542,6 +961,16 @@ final class Generators {
         @Override
         public String toString() { return "byYearDayGenerator"; }
       };
+  }
+
+  private static int daysBetween(
+      DTBuilder builder, int year, int month, int day) {
+    if (year == builder.year && month == builder.month) {
+      return builder.day - day;
+    } else {
+      return TimeUtils.daysBetween(
+          builder.year, builder.month, builder.day, year, month, day);
+    }
   }
 
   private Generators() {

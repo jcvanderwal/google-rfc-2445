@@ -15,6 +15,9 @@
 package com.google.ical.iter;
 
 import com.google.ical.util.DTBuilder;
+import com.google.ical.values.DateTimeValueImpl;
+import com.google.ical.values.DateValue;
+import com.google.ical.values.DateValueImpl;
 import com.google.ical.values.IcalParseUtil;
 import com.google.ical.values.Weekday;
 import com.google.ical.values.WeekdayNum;
@@ -271,4 +274,291 @@ public class GeneratorsTest extends TestCase {
         new DTBuilder(2006, 1, 1), "year", "2006, 2008, 2010, 2012, 2014", 5);
   }
 
+  public void testSerialHourGeneratorGivenDate() throws Exception {
+    DateValue dtStart = new DateValueImpl(2011, 8, 8);
+    Generator g = Generators.serialHourGenerator(7, dtStart);
+    DTBuilder b = new DTBuilder(dtStart);
+    assertTrue(g.generate(b));
+    assertEquals("2011-8-8 0:0:0", b.toString());
+    assertTrue(g.generate(b));
+    assertEquals("2011-8-8 7:0:0", b.toString());
+    assertTrue(g.generate(b));
+    assertEquals("2011-8-8 14:0:0", b.toString());
+    assertTrue(g.generate(b));
+    assertEquals("2011-8-8 21:0:0", b.toString());
+    assertFalse(g.generate(b));
+    assertEquals("2011-8-8 21:0:0", b.toString());
+    ++b.day;
+    assertTrue(g.generate(b));
+    assertEquals("2011-8-9 4:0:0", b.toString());
+    b.day += 2;
+    assertTrue(g.generate(b));
+    assertEquals("2011-8-11 5:0:0", b.toString());
+  }
+
+  public void testSerialHourGeneratorGivenTime() throws Exception {
+    DateValue dtStart = new DateTimeValueImpl(2011, 8, 8, 1, 25, 30);
+    Generator g = Generators.serialHourGenerator(7, dtStart);
+    DTBuilder b = new DTBuilder(dtStart);
+    assertTrue(g.generate(b));
+    assertEquals("2011-8-8 1:25:30", b.toString());
+    assertTrue(g.generate(b));
+    assertEquals("2011-8-8 8:25:30", b.toString());
+    assertTrue(g.generate(b));
+    assertEquals("2011-8-8 15:25:30", b.toString());
+    assertTrue(g.generate(b));
+    assertEquals("2011-8-8 22:25:30", b.toString());
+    assertFalse(g.generate(b));
+    assertEquals("2011-8-8 22:25:30", b.toString());
+    ++b.day;
+    assertTrue(g.generate(b));
+    assertEquals("2011-8-9 5:25:30", b.toString());
+    b.day += 2;
+    assertTrue(g.generate(b));
+    assertEquals("2011-8-11 6:25:30", b.toString());
+  }
+
+  public void testSerialHourGeneratorRolledBack() throws Exception {
+    DateValue dtStart = new DateTimeValueImpl(2011, 8, 8, 1, 25, 30);
+    Generator g = Generators.serialHourGenerator(7, dtStart);
+    DTBuilder b = new DTBuilder(new DateTimeValueImpl(2011, 8, 1, 0, 29, 50));
+    assertTrue(g.generate(b));
+    assertEquals("2011-8-1 1:29:50", b.toString());
+    assertTrue(g.generate(b));
+    assertEquals("2011-8-1 8:29:50", b.toString());
+    assertTrue(g.generate(b));
+    assertEquals("2011-8-1 15:29:50", b.toString());
+    assertTrue(g.generate(b));
+    assertEquals("2011-8-1 22:29:50", b.toString());
+    assertFalse(g.generate(b));
+    assertEquals("2011-8-1 22:29:50", b.toString());
+    ++b.day;
+    assertTrue(g.generate(b));
+    assertEquals("2011-8-2 5:29:50", b.toString());
+    b.day += 2;
+    assertTrue(g.generate(b));
+    assertEquals("2011-8-4 6:29:50", b.toString());
+  }
+
+  public void testByHourGeneratorGivenDate() throws Exception {
+    DateValue dtStart = new DateValueImpl(2011, 8, 8);
+    Generator g = Generators.byHourGenerator(new int[] { 3, 9, 11 }, dtStart);
+    DTBuilder b = new DTBuilder(dtStart);
+    assertTrue(g.generate(b));
+    assertEquals("2011-8-8 3:0:0", b.toString());
+    assertTrue(g.generate(b));
+    assertEquals("2011-8-8 9:0:0", b.toString());
+    assertTrue(g.generate(b));
+    assertEquals("2011-8-8 11:0:0", b.toString());
+    assertFalse(g.generate(b));
+    assertEquals("2011-8-8 11:0:0", b.toString());
+    ++b.day;
+    assertTrue(g.generate(b));
+    assertEquals("2011-8-9 3:0:0", b.toString());
+    assertTrue(g.generate(b));
+    assertEquals("2011-8-9 9:0:0", b.toString());
+    assertTrue(g.generate(b));
+    assertEquals("2011-8-9 11:0:0", b.toString());
+    ++b.month;
+    assertTrue(g.generate(b));
+    assertEquals("2011-9-9 3:0:0", b.toString());
+  }
+
+  public void testByHourGeneratorGivenDateTime() throws Exception {
+    DateValue dtStart = new DateTimeValueImpl(2011, 8, 8, 3, 11, 12);
+    Generator g = Generators.byHourGenerator(new int[] { 3, 9, 11 }, dtStart);
+    DTBuilder b = new DTBuilder(dtStart);
+    assertTrue(g.generate(b));
+    assertEquals("2011-8-8 3:11:12", b.toString());
+    assertTrue(g.generate(b));
+    assertEquals("2011-8-8 9:11:12", b.toString());
+    assertTrue(g.generate(b));
+    assertEquals("2011-8-8 11:11:12", b.toString());
+    assertFalse(g.generate(b));
+    assertEquals("2011-8-8 11:11:12", b.toString());
+    ++b.day;
+    assertTrue(g.generate(b));
+    assertEquals("2011-8-9 3:11:12", b.toString());
+    assertTrue(g.generate(b));
+    assertEquals("2011-8-9 9:11:12", b.toString());
+    assertTrue(g.generate(b));
+    assertEquals("2011-8-9 11:11:12", b.toString());
+    ++b.month;
+    assertTrue(g.generate(b));
+    assertEquals("2011-9-9 3:11:12", b.toString());
+  }
+
+  public void testSingleByHourGeneratorGivenDateTime() throws Exception {
+    DateValue dtStart = new DateTimeValueImpl(2011, 8, 8, 3, 11, 12);
+    Generator g = Generators.byHourGenerator(new int[] { 7 }, dtStart);
+    DTBuilder b = new DTBuilder(dtStart);
+    assertTrue(g.generate(b));
+    assertEquals("2011-8-8 7:11:12", b.toString());
+    ++b.day;
+    assertTrue(g.generate(b));
+    assertEquals("2011-8-9 7:11:12", b.toString());
+    ++b.month;
+    assertTrue(g.generate(b));
+    assertEquals("2011-9-9 7:11:12", b.toString());
+  }
+
+  public void testSerialMinuteGeneratorBigInterval() throws Exception {
+    DateValue dtStart = new DateTimeValueImpl(2011, 8, 8, 15, 30, 0);
+    Generator g = Generators.serialMinuteGenerator(100, dtStart);
+    DTBuilder b = new DTBuilder(dtStart);
+    assertTrue(g.generate(b));
+    assertEquals("2011-8-8 15:30:0", b.toString());
+    assertFalse(g.generate(b));
+    assertEquals("2011-8-8 15:30:0", b.toString());
+    ++b.hour;
+    assertFalse(g.generate(b));
+    assertEquals("2011-8-8 16:30:0", b.toString());
+    ++b.hour;
+    assertTrue(g.generate(b));
+    assertEquals("2011-8-8 17:10:0", b.toString());
+    assertFalse(g.generate(b));
+    ++b.hour;
+    assertTrue(g.generate(b));
+    assertEquals("2011-8-8 18:50:0", b.toString());
+    assertFalse(g.generate(b));
+    ++b.hour;
+    assertFalse(g.generate(b));
+    ++b.hour;
+    assertTrue(g.generate(b));
+    assertEquals("2011-8-8 20:30:0", b.toString());
+    assertFalse(g.generate(b));
+    ++b.hour;
+    assertFalse(g.generate(b));
+    ++b.hour;
+    assertTrue(g.generate(b));
+    assertEquals("2011-8-8 22:10:0", b.toString());
+    assertFalse(g.generate(b));
+    ++b.hour;
+    assertTrue(g.generate(b));
+    assertEquals("2011-8-8 23:50:0", b.toString());
+    assertFalse(g.generate(b));
+    assertEquals("2011-8-8 23:50:0", b.toString());
+    ++b.day;
+    b.hour = 0;
+    assertFalse(g.generate(b));
+    ++b.hour;
+    assertTrue(g.generate(b));
+    assertEquals("2011-8-9 1:30:0", b.toString());
+    b.day += 2;
+    b.hour = 6;
+    // Skipping over 3:10, 4:50, 6:30, 8:10, 9:50, 11:30, 13:10, 14:50, 16:30,
+    //               18:10, 19:50, 21:30, 23:10,
+    // on the 9th, and 0:50, 2:30, 4:10, 5:50, 7:30, 9:10, 10:50, 12:30,
+    //               14:10, 15:50, 17:30, 19:10, 20:50, 22:30,
+    // on the 10th, and 00:10, 1:50, 3:30, 5:10 on the 11th, to 6:50.
+    assertTrue(g.generate(b));
+    assertEquals("2011-8-11 6:50:0", b.toString());
+  }
+
+  public void testSerialMinuteGeneratorSmallInterval() throws Exception {
+    DateValue dtStart = new DateValueImpl(2011, 8, 8);
+    Generator g = Generators.serialMinuteGenerator(15, dtStart);
+    DTBuilder b = new DTBuilder(dtStart);
+    assertTrue(g.generate(b));
+    assertEquals("2011-8-8 0:0:0", b.toString());
+    assertTrue(g.generate(b));
+    assertEquals("2011-8-8 0:15:0", b.toString());
+    assertTrue(g.generate(b));
+    assertEquals("2011-8-8 0:30:0", b.toString());
+    assertTrue(g.generate(b));
+    assertEquals("2011-8-8 0:45:0", b.toString());
+    assertFalse(g.generate(b));
+    ++b.hour;
+    assertTrue(g.generate(b));
+    assertEquals("2011-8-8 1:0:0", b.toString());
+  }
+
+  public void testByMinuteGenerator() throws Exception {
+    DateValue dtStart = new DateTimeValueImpl(2011, 8, 8, 5, 0, 17);
+    Generator g = Generators.byMinuteGenerator(
+        new int[] { 3, 57, 20, 3 }, dtStart);
+    DTBuilder b = new DTBuilder(dtStart);
+    assertTrue(g.generate(b));
+    assertEquals("2011-8-8 5:3:17", b.toString());
+    assertTrue(g.generate(b));
+    assertEquals("2011-8-8 5:20:17", b.toString());
+    assertTrue(g.generate(b));
+    assertEquals("2011-8-8 5:57:17", b.toString());
+    assertFalse(g.generate(b));
+    ++b.hour;
+    assertTrue(g.generate(b));
+    assertEquals("2011-8-8 6:3:17", b.toString());
+  }
+
+  public void testSingleByMinuteGenerator() throws Exception {
+    DateValue dtStart = new DateTimeValueImpl(2011, 8, 8, 5, 30, 17);
+    Generator g = Generators.byMinuteGenerator(new int[0], dtStart);
+    DTBuilder b = new DTBuilder(dtStart);
+    assertTrue(g.generate(b));
+    assertEquals("2011-8-8 5:30:17", b.toString());
+    assertFalse(g.generate(b));
+    ++b.hour;
+    assertTrue(g.generate(b));
+    assertEquals("2011-8-8 6:30:17", b.toString());
+    assertFalse(g.generate(b));
+    b.day += 1;
+    assertTrue(g.generate(b));
+    assertEquals("2011-8-9 6:30:17", b.toString());
+    assertFalse(g.generate(b));
+  }
+
+  public void testSerialSecondGenerator() throws Exception {
+    DateValue dtStart = new DateTimeValueImpl(2011, 8, 8, 19, 1, 23);
+    Generator g = Generators.serialSecondGenerator(25, dtStart);
+    DTBuilder b = new DTBuilder(dtStart);
+    assertTrue(g.generate(b));
+    assertEquals("2011-8-8 19:1:23", b.toString());
+    assertTrue(g.generate(b));
+    assertEquals("2011-8-8 19:1:48", b.toString());
+    assertFalse(g.generate(b));
+    b.minute += 1;
+    assertTrue(g.generate(b));
+    assertEquals("2011-8-8 19:2:13", b.toString());
+    assertTrue(g.generate(b));
+    assertEquals("2011-8-8 19:2:38", b.toString());
+    assertFalse(g.generate(b));
+    b.minute += 1;
+    assertTrue(g.generate(b));
+    assertEquals("2011-8-8 19:3:3", b.toString());
+    b.minute += 1;
+    // skipped 2:28, 2:53
+    assertTrue(g.generate(b));
+    assertEquals("2011-8-8 19:4:18", b.toString());
+  }
+
+  public void testBySecondGenerator() throws Exception {
+    DateValue dtStart = new DateTimeValueImpl(2011, 8, 8, 19, 1, 23);
+    Generator g = Generators.bySecondGenerator(
+        new int[] { 25, 48, 2 }, dtStart);
+    DTBuilder b = new DTBuilder(dtStart);
+    assertTrue(g.generate(b));
+    assertEquals("2011-8-8 19:1:25", b.toString());
+    assertTrue(g.generate(b));
+    assertEquals("2011-8-8 19:1:48", b.toString());
+    assertFalse(g.generate(b));
+    ++b.minute;
+    assertTrue(g.generate(b));
+    assertEquals("2011-8-8 19:2:2", b.toString());
+  }
+
+  public void testSingleBySecondGenerator() throws Exception {
+    DateValue dtStart = new DateTimeValueImpl(2011, 8, 8, 19, 1, 23);
+    Generator g = Generators.bySecondGenerator(new int[0], dtStart);
+    DTBuilder b = new DTBuilder(dtStart);
+    assertTrue(g.generate(b));
+    assertEquals("2011-8-8 19:1:23", b.toString());
+    assertFalse(g.generate(b));
+    ++b.minute;
+    assertTrue(g.generate(b));
+    assertEquals("2011-8-8 19:2:23", b.toString());
+    assertFalse(g.generate(b));
+    ++b.minute;
+    assertTrue(g.generate(b));
+    assertEquals("2011-8-8 19:3:23", b.toString());
+  }
 }

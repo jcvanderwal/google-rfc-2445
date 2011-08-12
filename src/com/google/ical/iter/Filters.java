@@ -15,10 +15,12 @@
 package com.google.ical.iter;
 
 import com.google.ical.values.DateValue;
+import com.google.ical.values.TimeValue;
 import com.google.ical.values.Weekday;
 import com.google.ical.values.WeekdayNum;
 import com.google.ical.util.DTBuilder;
 import com.google.ical.util.Predicate;
+import com.google.ical.util.Predicates;
 import com.google.ical.util.TimeUtils;
 
 
@@ -148,6 +150,70 @@ class Filters {
         }
         int off = (daysBetween / 7) % interval;
         return 0 == off;
+      }
+    };
+  }
+
+  private static final int LOW_24_BITS = ~(-1 << 24);
+  private static final long LOW_60_BITS = ~(-1L << 60);
+
+  /**
+   * constructs an hour filter based on a BYHOUR rule.
+   * @param hours hours of the day in [0, 23]
+   */
+  static Predicate<DateValue> byHourFilter(int[] hours) {
+    int hoursByBit = 0;
+    for (int hour : hours) { hoursByBit |= 1 << hour; }
+    if ((hoursByBit & LOW_24_BITS) == LOW_24_BITS) {
+      return Predicates.alwaysTrue();
+    }
+    final int bitField = hoursByBit;
+    return new Predicate<DateValue>() {
+      public boolean apply(DateValue date) {
+        if (!(date instanceof TimeValue)) { return false; }
+        TimeValue tv = (TimeValue) date;
+        return (bitField & (1 << tv.hour())) != 0;
+      }
+    };
+  }
+
+  /**
+   * constructs a minute filter based on a BYMINUTE rule.
+   * @param minutes minutes of the hour in [0, 59]
+   */
+  static Predicate<DateValue> byMinuteFilter(int[] minutes) {
+    long minutesByBit = 0;
+    for (int minute : minutes) { minutesByBit |= 1L << minute; }
+    if ((minutesByBit & LOW_60_BITS) == LOW_60_BITS) {
+      return Predicates.alwaysTrue();
+    }
+    final long bitField = minutesByBit;
+    return new Predicate<DateValue>() {
+      public boolean apply(DateValue date) {
+        if (!(date instanceof TimeValue)) { return false; }
+        TimeValue tv = (TimeValue) date;
+        return (bitField & (1L << tv.minute())) != 0;
+      }
+    };
+  }
+
+
+  /**
+   * constructs a second filter based on a BYMINUTE rule.
+   * @param seconds seconds of the minute in [0, 59]
+   */
+  static Predicate<DateValue> bySecondFilter(int[] seconds) {
+    long secondsByBit = 0;
+    for (int second : seconds) { secondsByBit |= 1L << second; }
+    if ((secondsByBit & LOW_60_BITS) == LOW_60_BITS) {
+      return Predicates.alwaysTrue();
+    }
+    final long bitField = secondsByBit;
+    return new Predicate<DateValue>() {
+      public boolean apply(DateValue date) {
+        if (!(date instanceof TimeValue)) { return false; }
+        TimeValue tv = (TimeValue) date;
+        return (bitField & (1L << tv.second())) != 0;
       }
     };
   }
