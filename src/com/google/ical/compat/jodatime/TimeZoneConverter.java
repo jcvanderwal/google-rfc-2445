@@ -55,7 +55,7 @@ final class TimeZoneConverter {
     c.set(2000, 0, 1, 0, 0, 0);
     MILLIS_SINCE_1_JAN_2000_UTC = c.getTimeInMillis();
   }
-  
+
   /**
    * return a <code>java.util.Timezone</code> object that delegates to
    * the given Joda <code>DateTimeZone</code>.
