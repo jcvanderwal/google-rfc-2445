@@ -118,5 +118,7 @@ public final class IcalParseUtil {
   private static final Pattern IGNORABLE_ICAL_WHITESPACE =
     Pattern.compile("(?:\\r\\n?|\\n)[ \t]");
 
-  private IcalParseUtil() { }
+  private IcalParseUtil() {
+    // uninstantiable.
+  }
 }
