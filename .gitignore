@@ -1,0 +1,9 @@
+/target/
+/lib/
+/testlib/
+/docs/
+/jars/
+/reports/
+.classpath
+.settings/
+.project
