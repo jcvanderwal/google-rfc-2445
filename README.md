@@ -1,7 +1,6 @@
 #Google RFC 2445
 
-This is a mavenized version of the google-rfc-2455 project that lives on
-https://code.google.com/p/google-rfc-2445/
+This is a mavenized version of the google-rfc-2455 project on [Google Code](https://code.google.com/p/google-rfc-2445/).
 
 ##Purpose
 
@@ -33,21 +32,32 @@ For questions and the occasional answer, join the user & developer group.
 
 The javadoc is available [online](http://google-rfc-2445.googlecode.com/svn/trunk/snapshot/docs/index.html).
 
-
 ## Building
 
 Prerequisites:
 
 * Java JDK 7 or higher
-* [maven 3](http://maven.apache.org)
+* [Maven 3](http://maven.apache.org)
 
 To build the jar:
 
     git clone https://github.com/jcvanderwal/google-rfc-2445.git
     git checkout mavenized
-    mvn clean install
+    mvn clean install -DskipTests
+
+The original project contains some failing tests, to be fixed.
 
 ## Using
+
+Add this dependency to your project's `pom.xm`
+
+```xml
+<dependency>
+    <groupId>com.google</groupId>
+    <artifactId>rfc-2445</artifactId>
+    <version>1.0-SNAPSHOT</version>
+</dependency>
+```
 
 Using the API is pretty easy.   Pass in some ical and you get back
 a date iterable, which can be used in a for-each loop thusly:
