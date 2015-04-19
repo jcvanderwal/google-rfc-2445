@@ -36,7 +36,6 @@ public class AllTests extends TestSuite {
     this.addTestSuite(com.google.ical.iter.FiltersTest.class);
     this.addTestSuite(com.google.ical.iter.GeneratorsTest.class);
     this.addTestSuite(com.google.ical.iter.IntSetTest.class);
-    this.addTestSuite(com.google.ical.iter.MonkeyKeyboardTest.class);
     this.addTestSuite(com.google.ical.iter.RDateIteratorImplTest.class);
     this.addTestSuite(com.google.ical.iter.RRuleIteratorImplTest.class);
     this.addTestSuite(com.google.ical.iter.StressTest.class);
