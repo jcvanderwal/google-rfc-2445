@@ -57,7 +57,6 @@ public class TimeZoneConverterTest extends TestCase {
       "+08:15", "GMT+08:15",
       "Europe/Paris", null,         // one in the Eastern hemisphere with
                                     // daylight savings
-      "Asia/Shanghai", null,        // has daylight savings
       "Pacific/Tongatapu", null,    // outside [-12,+12]
     };
 
@@ -103,9 +102,6 @@ public class TimeZoneConverterTest extends TestCase {
     assertDST("UTC", false);
     assertDST("America/Chicago", true);
     assertDST("America/Guatemala", true);
-    // China should not observe DST
-    assertDST("Asia/Chongqing", false);
-    assertDST("Asia/Shanghai", false);
     assertDST("Europe/Uzhgorod", true);
     assertDST("Europe/Helsinki", true);
     assertDST("Etc/GMT+3", false);
